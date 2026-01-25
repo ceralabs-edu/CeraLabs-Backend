@@ -1,8 +1,7 @@
 CREATE table users
 (
     id            serial primary key,
-    role_course   smallint                            not null,
-    status        smallint,
+    role_id   smallint                            not null,
     created_at    timestamp default CURRENT_TIMESTAMP not null,
     updated_at    timestamp default CURRENT_TIMESTAMP not null,
     email         varchar(255)                        not null constraint users_pk unique,
@@ -15,8 +14,11 @@ CREATE table user_informations
 (
    id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL UNIQUE,
+    first_name VARCHAR(100),
+    last_name VARCHAR(100,
     city_code VARCHAR(10), -- Reference to province code
-    sub_district_code VARCHAR(10), -- Reference to commune code
+    sub_district_code VARCHAR(10), -- Reference to commune code,
+    address_detail VARCHAR(500),
     school VARCHAR(255),
     grade VARCHAR(50),
     favorite_subjects TEXT, -- Array of subjects
