@@ -10,6 +10,8 @@ CREATE table users
     otp_id        bigint
 );
 
+CREATE 
+
 CREATE table user_informations
 (
    id SERIAL PRIMARY KEY,
@@ -24,7 +26,7 @@ CREATE table user_informations
     favorite_subjects TEXT, -- Array of subjects
     bio TEXT,
     date_of_birth DATE,
-    avatar_url VARCHAR(500),
+    avatar_image VARCHAR(500),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
