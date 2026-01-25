@@ -21,7 +21,7 @@ public class RegisterRequest {
     private String subDistrictCode;
     private String addressDetail;
     private String school;
-    private Short grade;
+    private String grade;
     private List<String> favoriteSubjects;
     private String bio;
     private LocalDate dateOfBirth;

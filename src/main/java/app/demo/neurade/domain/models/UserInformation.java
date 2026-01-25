@@ -66,8 +66,8 @@ public class UserInformation {
     @Column(name = "school")
     private String school;
 
-    @Column(name = "grade")
-    private Short grade;
+    @Column(name = "grade", length = 50)
+    private String grade;
 
     @Column(name = "favorite_subjects")
     @Convert(converter = StringListConverter.class)
