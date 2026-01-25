@@ -1,0 +1,70 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres-service
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+      POSTGRES_DB: social
+    ports:
+      - "5436:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./ci/data.csv:/docker-entrypoint-initdb.d/data.csv
+      - ./ci/import_address.sql:/docker-entrypoint-initdb.d/import_address.sql
+      - ./ci/datamodel.sql:/docker-entrypoint-initdb.d/datamodel.sql
+      - ./ci/address_information.sql:/docker-entrypoint-initdb.d/address_information.sql
+
+    networks:
+      - elk-network
+
+  minio:
+    image: quay.io/minio/minio
+    container_name: minio-service
+    restart: always
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: admin123
+    ports:
+      - "9000:9000" 
+      - "9002:9001"  
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - elk-network
+
+  # app:
+  #   build: .
+  #   container_name: spring-app
+  #   restart: always
+  #   ports:
+  #     - "8080:8080"
+  #   environment:
+  #     - POSTGRES_HOST=postgres
+  #     - POSTGRES_PORT=5432
+  #     - POSTGRES_DB=social
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_PASSWORD=postgres
+  #     - MAIL_NAME=hungvq1601@gmail.com
+  #     - MAIL_PASSWORD=mbvc umir hxbx kmvs
+  #     - SCORE=8
+  #     - ACTIVE_PROFILE=dev
+  #     - MINIO_ENDPOINT=http://minio:9000
+  #     - MINIO_ACCESS_KEY=admin
+  #     - MINIO_SECRET_KEY=admin123
+  #     - MINIO_BUCKET_NAME=media-bucket
+  #   depends_on:
+  #     - postgres
+  #     - minio
+  #   networks:
+  #     - elk-network
+
+networks:
+  elk-network:
+    driver: bridge
+
+volumes:
+  postgres_data: {}
+  minio_data: {}
