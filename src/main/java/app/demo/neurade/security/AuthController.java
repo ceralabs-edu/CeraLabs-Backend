@@ -1,7 +1,5 @@
 package app.demo.neurade.security;
 
-import app.demo.neurade.domain.mappers.Mapper;
-import app.demo.neurade.domain.models.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,14 +13,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
-    private final Mapper mapper;
 
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> register(@RequestBody RegisterRequest request) {
-        User user = authService.register(request);
-        RegisterResponse response = new RegisterResponse();
-        response.setMessage("User registered successfully");
-        response.setUser(mapper.toDto(user));
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(authService.register(request));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request) {
+        return ResponseEntity.ok(authService.login(request));
     }
 }

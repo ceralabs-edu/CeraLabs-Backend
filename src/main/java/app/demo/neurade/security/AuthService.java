@@ -1,5 +1,6 @@
 package app.demo.neurade.security;
 
+import app.demo.neurade.domain.mappers.Mapper;
 import app.demo.neurade.domain.models.Commune;
 import app.demo.neurade.domain.models.Province;
 import app.demo.neurade.domain.models.User;
@@ -10,6 +11,10 @@ import app.demo.neurade.repositories.UserInformationRepository;
 import app.demo.neurade.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -23,8 +28,11 @@ public class AuthService {
     private final ProvinceRepository provinceRepository;
     private final CommuneRepository communeRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authManager;
+    private final JwtService jwtService;
+    private final Mapper mapper;
 
-    public User register(RegisterRequest req) {
+    public RegisterResponse register(RegisterRequest req) {
         // Check if user already exists
         if (userRepository.findByEmail(req.getEmail()).isPresent()) {
             log.warn(req.getEmail() + " is already registered");
@@ -70,6 +78,32 @@ public class AuthService {
 
         userInformationRepository.save(userInfo);
 
-        return user;
+        return RegisterResponse.builder()
+                .user(mapper.toDto(user))
+                .message("User registered successfully")
+                .build();
+    }
+
+    public AuthResponse login(AuthRequest req) {
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                req.getEmail(),
+                req.getPassword()
+        );
+        auth = authManager.authenticate(auth);
+        UserDetails userDetails = (UserDetails) auth.getPrincipal();
+        if (userDetails == null) {
+            log.warn("Authentication failed for " + req.getEmail());
+            throw new RuntimeException("Authentication failed");
+        }
+
+        String accessToken = jwtService.generateToken(userDetails);
+        String refreshToken = jwtService.refreshToken(userDetails);
+        User user = ((CustomUserDetails) userDetails).getUser();
+
+        return AuthResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .user(mapper.toDto(user))
+                .build();
     }
 }

@@ -2,7 +2,9 @@ package app.demo.neurade.domain.mappers;
 
 import app.demo.neurade.domain.dtos.UserDTO;
 import app.demo.neurade.domain.models.User;
+import app.demo.neurade.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 @Component
