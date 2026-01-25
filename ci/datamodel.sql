@@ -10,7 +10,11 @@ CREATE table users
     otp_id        bigint
 );
 
-CREATE 
+CREATE table roles
+(
+    id   smallint primary key,
+    name varchar(50) not null
+);
 
 CREATE table user_informations
 (
