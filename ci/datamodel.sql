@@ -16,12 +16,23 @@ CREATE table roles
     name varchar(50) not null
 );
 
+INSERT INTO roles (id, name) VALUES
+(1, 'admin'),
+(2, 'user'),
+(3, 'guest'),
+(4, 'teacher'),
+(5, 'student'),
+(6, 'parent'),
+(7, 'organization'),
+(8, 'superadmin');
+
+
 CREATE table user_informations
 (
    id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL UNIQUE,
     first_name VARCHAR(100),
-    last_name VARCHAR(100,
+    last_name VARCHAR(100),
     city_code VARCHAR(10), -- Reference to province code
     sub_district_code VARCHAR(10), -- Reference to commune code,
     address_detail VARCHAR(500),
