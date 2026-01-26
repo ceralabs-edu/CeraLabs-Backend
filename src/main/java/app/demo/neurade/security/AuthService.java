@@ -1,10 +1,7 @@
 package app.demo.neurade.security;
 
 import app.demo.neurade.domain.mappers.Mapper;
-import app.demo.neurade.domain.models.Commune;
-import app.demo.neurade.domain.models.Province;
-import app.demo.neurade.domain.models.User;
-import app.demo.neurade.domain.models.UserInformation;
+import app.demo.neurade.domain.models.*;
 import app.demo.neurade.repositories.CommuneRepository;
 import app.demo.neurade.repositories.ProvinceRepository;
 import app.demo.neurade.repositories.UserInformationRepository;
@@ -45,7 +42,7 @@ public class AuthService {
         User user = User.builder()
                 .email(req.getEmail())
                 .password(passwordEncoder.encode(req.getPassword()))
-                .roleId(req.getRoleId())
+                .roleId(RoleType.ROLE_MAP.get(RoleType.USER))
                 .build();
 
         user = userRepository.save(user);

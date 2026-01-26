@@ -14,11 +14,11 @@ public class RegisterRequest {
     private String email;
     private String password;
 
-    @Builder.Default
-    private Short roleId = 1;
-
-    @Builder.Default
-    private Boolean status = false;
+//    @Builder.Default
+//    private Short roleId = 1;
+//
+//    @Builder.Default
+//    private Boolean status = false;
 
     private String firstName;
     private String lastName;
