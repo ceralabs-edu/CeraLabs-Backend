@@ -30,19 +30,31 @@ public class AuthService {
     private final JwtService jwtService;
     private final Mapper mapper;
 
+
     @Transactional
-    public RegisterResponse register(RegisterRequest req) {
+    public RegisterResponse register(UserDetails userDetails, RegisterRequest req) {
         // Check if user already exists
         if (userRepository.findByEmail(req.getEmail()).isPresent()) {
             log.warn(req.getEmail() + " is already registered");
             throw new IllegalArgumentException("User already exists with email: " + req.getEmail());
         }
 
+        if (
+                req.getRole().equals(RoleType.ADMIN) &&
+                !(
+                        userDetails instanceof CustomUserDetails cud
+                        && cud.getUser().getRole().equals(RoleType.ADMIN)
+                )
+        ) {
+            log.warn("Only admin can register another admin");
+            throw new IllegalArgumentException("Only admin can register another admin");
+        }
+
         // Create new user
         User user = User.builder()
                 .email(req.getEmail())
                 .password(passwordEncoder.encode(req.getPassword()))
-                .roleId(req.getRoleId())
+                .role(req.getRole())
                 .build();
 
         user = userRepository.save(user);

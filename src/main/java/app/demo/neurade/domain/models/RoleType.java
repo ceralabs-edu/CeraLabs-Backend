@@ -1,21 +1,20 @@
 package app.demo.neurade.domain.models;
 
-import java.util.Map;
+import lombok.Getter;
 
-public class RoleType {
-    public static final String ADMIN = "ROLE_ADMIN";
-    public static final String STUDENT = "ROLE_STUDENT";
-    public static final String TEACHER = "ROLE_TEACHER";
-    public static final String ORGANIZATION = "ROLE_ORGANIZATION";
+@Getter
+public enum RoleType {
 
-    private static final Map<String, Short> ROLE_MAP = Map.of(
-        ADMIN, (short) 1,
-        ORGANIZATION, (short) 2,
-        TEACHER, (short) 3,
-        STUDENT, (short) 4
-    );
+    ADMIN("ROLE_ADMIN"),
+    ORGANIZATION("ROLE_ORGANIZATION"),
+    TEACHER("ROLE_TEACHER"),
+    STUDENT("ROLE_STUDENT");
 
-    public static Short getRoleId(String roleName) {
-        return ROLE_MAP.get(roleName);
+    private final String roleName;
+
+    RoleType(String roleName) {
+        this.roleName = roleName;
     }
+
 }
+

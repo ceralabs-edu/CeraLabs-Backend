@@ -19,7 +19,7 @@ public class ClassServiceImpl implements ClassService {
     @Transactional
     public Classroom createClass(User creator, ClassCreationRequest req) {
         Classroom clazz = Classroom.builder()
-                .name(req.getName())
+                .name(req.getClassName())
                 .creator(creator)
                 .build();
 

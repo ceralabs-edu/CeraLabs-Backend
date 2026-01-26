@@ -1,6 +1,5 @@
 package app.demo.neurade.domain.dtos.request;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -21,6 +20,5 @@ public class ClassCreationRequest {
             requiredMode = Schema.RequiredMode.REQUIRED
     )
     @NotBlank
-    @JsonProperty("class_name")
-    private String name;
+    private String className;
 }

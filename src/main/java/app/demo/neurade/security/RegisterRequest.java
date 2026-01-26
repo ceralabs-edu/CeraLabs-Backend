@@ -16,10 +16,7 @@ public class RegisterRequest {
     private String password;
 
     @Builder.Default
-    private Short roleId = RoleType.getRoleId(RoleType.STUDENT);
-//
-//    @Builder.Default
-//    private Boolean status = false;
+    private RoleType role = RoleType.STUDENT;
 
     private String firstName;
     private String lastName;

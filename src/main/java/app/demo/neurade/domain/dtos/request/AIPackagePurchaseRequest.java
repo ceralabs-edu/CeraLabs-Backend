@@ -1,6 +1,5 @@
 package app.demo.neurade.domain.dtos.request;
 
-import app.demo.neurade.domain.models.RoleType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,7 +9,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChangeUserRoleRequest {
-    private String email;
-    private RoleType role;
+public class AIPackagePurchaseRequest {
+    private Long classId;
+    private Integer aiPackageId;
 }

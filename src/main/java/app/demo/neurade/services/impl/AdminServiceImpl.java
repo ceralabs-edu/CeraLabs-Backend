@@ -1,5 +1,6 @@
 package app.demo.neurade.services.impl;
 
+import app.demo.neurade.domain.models.RoleType;
 import app.demo.neurade.domain.models.User;
 import app.demo.neurade.repositories.UserRepository;
 import app.demo.neurade.services.AdminService;
@@ -25,11 +26,11 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public User changeRole(String email, Short newRoleId) {
+    public User changeRole(String email, RoleType newRole) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found for email: " + email));
 
-        user.setRoleId(newRoleId);
+        user.setRole(newRole);
         return userRepository.save(user);
     }
 }

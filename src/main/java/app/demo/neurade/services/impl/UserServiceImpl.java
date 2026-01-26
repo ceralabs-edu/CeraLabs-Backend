@@ -1,8 +1,10 @@
 package app.demo.neurade.services.impl;
 
 import app.demo.neurade.domain.dtos.request.PatchUserRequest;
+import app.demo.neurade.domain.models.RoleType;
 import app.demo.neurade.domain.models.User;
 import app.demo.neurade.domain.models.UserInformation;
+import app.demo.neurade.exception.UnauthorizedException;
 import app.demo.neurade.repositories.UserInformationRepository;
 import app.demo.neurade.repositories.UserRepository;
 import app.demo.neurade.services.UserService;
@@ -27,7 +29,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserInformation updateUserInfo(String email, PatchUserRequest req) {
+    public UserInformation updateUserInfo(User currentUser, String email, PatchUserRequest req) {
+        if (!currentUser.getRole().equals(RoleType.ADMIN) && !currentUser.getEmail().equals(email)) {
+            throw new UnauthorizedException("You are not authorized to update this user's information");
+        }
         UserInformation info = infoRepository.findByUserEmail(email)
                 .orElseThrow(() -> new EntityNotFoundException("User information not found"));
 
