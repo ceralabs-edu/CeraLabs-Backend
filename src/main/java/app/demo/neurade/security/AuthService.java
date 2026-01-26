@@ -42,7 +42,7 @@ public class AuthService {
         User user = User.builder()
                 .email(req.getEmail())
                 .password(passwordEncoder.encode(req.getPassword()))
-                .roleId(RoleType.ROLE_MAP.get(RoleType.USER))
+                .roleId(req.getRoleId())
                 .build();
 
         user = userRepository.save(user);

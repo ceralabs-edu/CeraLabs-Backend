@@ -3,6 +3,7 @@ package app.demo.neurade.services.impl;
 import app.demo.neurade.services.FileService;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ public class MinioFileServiceImpl implements FileService {
     private String pfpBucket;
 
     @Override
+    @Transactional
     public String uploadPfp(MultipartFile file) {
         return upload(file, pfpBucket);
     }

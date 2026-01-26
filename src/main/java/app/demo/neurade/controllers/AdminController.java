@@ -19,7 +19,7 @@ import java.util.Map;
 @RequestMapping("/api/v1/admin")
 @PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
-@Tag(name = "Admin", description = "Admin management APIs")
+@Tag(name = "Admin Management", description = "Admin management APIs")
 public class AdminController {
 
     private final AdminService adminService;

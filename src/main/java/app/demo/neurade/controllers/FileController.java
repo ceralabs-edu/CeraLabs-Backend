@@ -16,7 +16,7 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("api/v1/files")
+@RequestMapping("api/v1/file")
 @Tag(name = "Files", description = "File management APIs")
 public class FileController {
 

@@ -1,12 +1,12 @@
 package app.demo.neurade.domain.mappers;
 
+import app.demo.neurade.domain.dtos.ClassDTO;
 import app.demo.neurade.domain.dtos.UserDTO;
 import app.demo.neurade.domain.dtos.UserInfoDTO;
+import app.demo.neurade.domain.models.Classroom;
 import app.demo.neurade.domain.models.User;
 import app.demo.neurade.domain.models.UserInformation;
-import app.demo.neurade.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -32,6 +32,13 @@ public class Mapper {
                 .favoriteSubjects(userInformation.getFavoriteSubjects())
                 .dateOfBirth(userInformation.getDateOfBirth())
                 .avatarUrl(userInformation.getAvatarImage())
+                .build();
+    }
+
+    public ClassDTO toDto(Classroom classroom) {
+        return ClassDTO.builder()
+                .name(classroom.getName())
+                .creatorId(classroom.getCreator().getId())
                 .build();
     }
 }

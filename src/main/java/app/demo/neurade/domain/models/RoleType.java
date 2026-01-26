@@ -4,10 +4,18 @@ import java.util.Map;
 
 public class RoleType {
     public static final String ADMIN = "ROLE_ADMIN";
-    public static final String USER = "ROLE_USER";
+    public static final String STUDENT = "ROLE_STUDENT";
+    public static final String TEACHER = "ROLE_TEACHER";
+    public static final String ORGANIZATION = "ROLE_ORGANIZATION";
 
-    public static final Map<String, Short> ROLE_MAP = Map.of(
-        USER, (short)1,
-        ADMIN, (short)2
+    private static final Map<String, Short> ROLE_MAP = Map.of(
+        ADMIN, (short) 1,
+        ORGANIZATION, (short) 2,
+        TEACHER, (short) 3,
+        STUDENT, (short) 4
     );
+
+    public static Short getRoleId(String roleName) {
+        return ROLE_MAP.get(roleName);
+    }
 }

@@ -1,5 +1,6 @@
 package app.demo.neurade.security;
 
+import app.demo.neurade.domain.models.RoleType;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -14,8 +15,8 @@ public class RegisterRequest {
     private String email;
     private String password;
 
-//    @Builder.Default
-//    private Short roleId = 1;
+    @Builder.Default
+    private Short roleId = RoleType.getRoleId(RoleType.STUDENT);
 //
 //    @Builder.Default
 //    private Boolean status = false;

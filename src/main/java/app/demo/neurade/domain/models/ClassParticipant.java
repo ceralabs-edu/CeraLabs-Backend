@@ -1,0 +1,43 @@
+package app.demo.neurade.domain.models;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "class_participants",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_class_user",
+                columnNames = {"class_id", "user_id"}
+        ))
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class ClassParticipant {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "class_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "fk_class_participant_class")
+    )
+    private Classroom clazz;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "user_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "fk_class_participant_user")
+    )
+    private User user;
+
+    @Column(name = "joined_at")
+    private LocalDateTime joinedAt;
+}
