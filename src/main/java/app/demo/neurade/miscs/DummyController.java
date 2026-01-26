@@ -1,4 +1,4 @@
-package app.demo.neurade.misc;
+package app.demo.neurade.miscs;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;

@@ -9,6 +9,7 @@ import app.demo.neurade.repositories.CommuneRepository;
 import app.demo.neurade.repositories.ProvinceRepository;
 import app.demo.neurade.repositories.UserInformationRepository;
 import app.demo.neurade.repositories.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -32,6 +33,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final Mapper mapper;
 
+    @Transactional
     public RegisterResponse register(RegisterRequest req) {
         // Check if user already exists
         if (userRepository.findByEmail(req.getEmail()).isPresent()) {

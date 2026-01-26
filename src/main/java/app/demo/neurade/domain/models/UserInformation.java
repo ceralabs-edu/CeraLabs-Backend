@@ -1,6 +1,6 @@
 package app.demo.neurade.domain.models;
 
-import app.demo.neurade.misc.StringListConverter;
+import app.demo.neurade.miscs.StringListConverter;
 import jakarta.persistence.*;
 import lombok.*;
 

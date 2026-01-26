@@ -1,4 +1,4 @@
-package app.demo.neurade.misc;
+package app.demo.neurade.miscs;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
