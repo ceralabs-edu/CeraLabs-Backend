@@ -54,3 +54,15 @@ CREATE table user_informations
 CREATE INDEX idx_user_informations_user_id ON user_informations(user_id);
 CREATE INDEX idx_user_informations_city_code ON user_informations(city_code);
 CREATE INDEX idx_user_informations_sub_district_code ON user_informations(sub_district_code);
+
+CREATE TABLE chat_histories
+(
+    id SERIAL PRIMARY KEY,
+    ai_package_id INTEGER,
+    user_id INTEGER NOT NULL,
+    message TEXT NOT NULL,
+    response TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
