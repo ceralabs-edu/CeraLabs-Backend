@@ -1,4 +1,4 @@
-package app.demo.neurade.domain.dtos.request;
+package app.demo.neurade.domain.dtos.requests;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -21,4 +21,11 @@ public class ClassCreationRequest {
     )
     @NotBlank
     private String className;
+
+    @Schema(
+            description = "Class description",
+            example = "This is a math class for 10th grade students.",
+            requiredMode = Schema.RequiredMode.NOT_REQUIRED
+    )
+    private String description;
 }

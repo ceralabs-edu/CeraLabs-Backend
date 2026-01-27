@@ -1,4 +1,4 @@
-package app.demo.neurade.domain.dtos.request;
+package app.demo.neurade.domain.dtos.requests;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class AIPackagePurchaseRequest {
-    private Long classId;
-    private Integer aiPackageId;
+public class ChangeUserPasswordRequest {
+    private String email;
+    private String newPassword;
 }

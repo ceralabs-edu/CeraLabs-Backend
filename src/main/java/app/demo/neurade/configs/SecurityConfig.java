@@ -3,6 +3,7 @@ package app.demo.neurade.configs;
 import app.demo.neurade.security.CustomUserDetailsService;
 import app.demo.neurade.security.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,6 +21,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableMethodSecurity
 @RequiredArgsConstructor
+@Slf4j
 public class SecurityConfig {
 
     private static final String[] WHITELIST = new String[]{

@@ -1,11 +1,8 @@
 package app.demo.neurade.domain.mappers;
 
-import app.demo.neurade.domain.dtos.ClassDTO;
-import app.demo.neurade.domain.dtos.UserDTO;
-import app.demo.neurade.domain.dtos.UserInfoDTO;
-import app.demo.neurade.domain.models.Classroom;
-import app.demo.neurade.domain.models.User;
-import app.demo.neurade.domain.models.UserInformation;
+import app.demo.neurade.domain.dtos.*;
+import app.demo.neurade.domain.dtos.externals.responses.ExtVerifyKeyResponse;
+import app.demo.neurade.domain.models.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -39,6 +36,27 @@ public class Mapper {
         return ClassDTO.builder()
                 .name(classroom.getName())
                 .creatorId(classroom.getCreator().getId())
+                .build();
+    }
+
+    public ValidateKeyDTO toDto(ExtVerifyKeyResponse response) {
+        return ValidateKeyDTO.builder()
+                .isValid(response.isValid())
+                .models(response.getModels())
+                .errorMessage(response.getErrorMessage())
+                .build();
+    }
+
+    public AIPackageInstanceDTO toDto(AIPackageInstance aiPackageInstance, AIPackage aiPackage) {
+        return AIPackageInstanceDTO.builder()
+                .instanceId(aiPackageInstance.getId())
+                .aiPackageId(aiPackageInstance.getAiPackage().getId())
+                .classId(aiPackageInstance.getClassRoom().getId())
+                .purchaserId(aiPackageInstance.getBuyer().getId())
+                .remainingToken(aiPackageInstance.getRemainingToken())
+                .totalToken(aiPackage.getTotalToken())
+                .purchaseDate(aiPackageInstance.getPurchaseDate())
+                .expiryDate(aiPackageInstance.getExpiryDate())
                 .build();
     }
 }

@@ -1,6 +1,6 @@
 package app.demo.neurade.services.impl;
 
-import app.demo.neurade.domain.dtos.request.ClassCreationRequest;
+import app.demo.neurade.domain.dtos.requests.ClassCreationRequest;
 import app.demo.neurade.domain.models.Classroom;
 import app.demo.neurade.domain.models.User;
 import app.demo.neurade.repositories.ClassRepository;
@@ -20,6 +20,7 @@ public class ClassServiceImpl implements ClassService {
     public Classroom createClass(User creator, ClassCreationRequest req) {
         Classroom clazz = Classroom.builder()
                 .name(req.getClassName())
+                .description(req.getDescription())
                 .creator(creator)
                 .build();
 

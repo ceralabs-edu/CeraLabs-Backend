@@ -1,6 +1,6 @@
 package app.demo.neurade.services;
 
-import app.demo.neurade.domain.dtos.request.PatchUserRequest;
+import app.demo.neurade.domain.dtos.requests.PatchUserRequest;
 import app.demo.neurade.domain.models.User;
 import app.demo.neurade.domain.models.UserInformation;
 

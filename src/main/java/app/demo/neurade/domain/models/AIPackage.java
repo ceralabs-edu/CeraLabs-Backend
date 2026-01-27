@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -24,14 +25,20 @@ public class AIPackage {
     @Column(name = "model", nullable = false, length = 100)
     private String model;
 
+    @Column(name = "description", nullable = false, length = 1000)
+    private String description;
+
+    @Column(name = "api_keys", nullable = false, length = 2000)
+    private List<String> apiKeys;
+
     @Column(name = "total_token", nullable = false)
     private Long totalToken;
 
     @Column(name = "price", nullable = false)
     private Double price;
 
-    @Column(name = "token_rate_limit", nullable = false, length = 50)
-    private String tokenRateLimit;
+    @Column(name = "token_rate_limit", nullable = false)
+    private Long tokenRateLimit;
 
     @Column(name = "duration_days", nullable = false)
     private Integer durationInDays;

@@ -29,6 +29,9 @@ public class Classroom {
     )
     private User creator;
 
+    @Column(name = "description", length = 1000)
+    private String description;
+
     @Column(name = "creation_date", nullable = false, updatable = false)
     private LocalDateTime creationDate;
 
