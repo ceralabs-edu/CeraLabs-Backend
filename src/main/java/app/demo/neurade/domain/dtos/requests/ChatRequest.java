@@ -11,5 +11,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class ChatRequest {
     private boolean isNewConversation;
+    private String conversationId;
     private String message;
 }
