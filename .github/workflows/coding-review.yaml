@@ -27,11 +27,14 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      # Use the custom action to send webhook to backend
-      - name: Send webhook to backend
-        uses: test-hook-neurade/hook-backend@v1
-        env:
-          # Backend API endpoint URL from secrets
-          BACKEND_URL: ${{ secrets.BACKEND_URL }}
-          # Authentication token from secrets  
-          SECRET_TOKEN: ${{ secrets.SECRET_TOKEN }}
+      - name: Send webhook to n8n
+        run: |
+          echo "🚀 Sending webhook request..."
+          
+          curl --request POST \
+          --url "${{ secrets.BACKEND_URL }}" \
+          --header "Authorization: Bearer ${{ secrets.SECRET_TOKEN }}" \
+          --header "Content-Type: application/json" \
+          --header "X-GitHub-Event: ${{ github.event_name }}" \
+          --data "@$GITHUB_EVENT_PATH" \
+          --fail
