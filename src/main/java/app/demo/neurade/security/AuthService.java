@@ -2,7 +2,7 @@ package app.demo.neurade.security;
 
 import app.demo.neurade.domain.mappers.Mapper;
 import app.demo.neurade.domain.models.*;
-import app.demo.neurade.repositories.*;
+import app.demo.neurade.infrastructures.repositories.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,7 +1,7 @@
 package app.demo.neurade.domain.mappers;
 
 import app.demo.neurade.domain.dtos.*;
-import app.demo.neurade.domain.dtos.externals.responses.ExtVerifyKeyResponse;
+import app.demo.neurade.infrastructures.llm.responses.ExtVerifyKeyResponse;
 import app.demo.neurade.domain.models.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

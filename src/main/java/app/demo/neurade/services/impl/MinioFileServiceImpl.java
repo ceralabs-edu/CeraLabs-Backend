@@ -2,9 +2,13 @@ package app.demo.neurade.services.impl;
 
 import app.demo.neurade.domain.dtos.ChatAssetUploadDTO;
 import app.demo.neurade.domain.models.chatbot.AssetType;
+import app.demo.neurade.exception.StorageException;
 import app.demo.neurade.services.FileService;
+import io.minio.BucketExistsArgs;
+import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
+import io.minio.errors.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -97,6 +101,7 @@ public class MinioFileServiceImpl implements FileService {
             String bucket,
             String objectKey
     ) {
+        createBucketIfNotExists(bucket);
         try {
             minioClient.putObject(
                     PutObjectArgs.builder()
@@ -107,7 +112,7 @@ public class MinioFileServiceImpl implements FileService {
                             .build()
             );
         } catch (Exception e) {
-            throw new RuntimeException("Upload failed", e);
+            throw new StorageException("Failed to upload Pfp file: " + e.getMessage());
         }
     }
 
@@ -119,4 +124,31 @@ public class MinioFileServiceImpl implements FileService {
         return AssetType.PDF;
     }
 
+    private void createBucketIfNotExists(String bucketName) {
+        boolean exists;
+        try {
+            exists = minioClient.bucketExists(
+                    BucketExistsArgs.builder()
+                            .bucket(bucketName)
+                            .build()
+            );
+        } catch (Exception e) {
+            throw new StorageException("Failed to check if bucket exists: " + e.getMessage());
+        }
+
+        if (!exists) {
+            try {
+                minioClient.makeBucket(
+                        MakeBucketArgs.builder()
+                                .bucket(bucketName)
+                                .build()
+                );
+            } catch (Exception e) {
+                throw new StorageException("Failed to create bucket: " + e.getMessage());
+            }
+            System.out.println("Bucket created: " + bucketName);
+        } else {
+            System.out.println("Bucket already exists: " + bucketName);
+        }
+    }
 }

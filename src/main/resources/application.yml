@@ -28,6 +28,7 @@ gemini:
 
 llm:
   validate-endpoint: ${LLM_VALIDATE_ENDPOINT}
+  qa-endpoint: ${LLM_QA_ENDPOINT}
 
 application:
   security:

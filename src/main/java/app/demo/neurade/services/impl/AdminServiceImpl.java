@@ -2,8 +2,8 @@ package app.demo.neurade.services.impl;
 
 import app.demo.neurade.domain.models.Role;
 import app.demo.neurade.domain.models.User;
-import app.demo.neurade.repositories.RoleRepository;
-import app.demo.neurade.repositories.UserRepository;
+import app.demo.neurade.infrastructures.repositories.RoleRepository;
+import app.demo.neurade.infrastructures.repositories.UserRepository;
 import app.demo.neurade.services.AdminService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

@@ -1,4 +1,4 @@
-package app.demo.neurade.configs;
+package app.demo.neurade.infrastructures.configs;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

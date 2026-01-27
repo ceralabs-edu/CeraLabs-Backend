@@ -1,4 +1,4 @@
-package app.demo.neurade.domain.dtos.externals.responses;
+package app.demo.neurade.infrastructures.llm.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;

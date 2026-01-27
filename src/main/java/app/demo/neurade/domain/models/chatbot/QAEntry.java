@@ -3,7 +3,7 @@ package app.demo.neurade.domain.models.chatbot;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,11 +38,11 @@ public class QAEntry {
     private List<QuestionAsset> assets = new ArrayList<>();
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
+    private LocalDateTime createdAt;
 
     @PrePersist
     public void prePersist() {
-        this.createdAt = Instant.now();
+        this.createdAt = LocalDateTime.now();
     }
 }
 

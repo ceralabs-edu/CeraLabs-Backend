@@ -1,4 +1,4 @@
-package app.demo.neurade.repositories;
+package app.demo.neurade.infrastructures.repositories;
 
 import app.demo.neurade.domain.models.Province;
 import org.springframework.data.jpa.repository.JpaRepository;

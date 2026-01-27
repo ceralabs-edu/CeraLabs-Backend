@@ -2,8 +2,7 @@ package app.demo.neurade.domain.models.chatbot;
 
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Entity
 @Builder
@@ -19,10 +18,10 @@ public class Conversation {
     private String id;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
+    private LocalDateTime createdAt;
 
     @PrePersist
     public void prePersist() {
-        this.createdAt = Instant.now();
+        this.createdAt = LocalDateTime.now();
     }
 }

@@ -1,4 +1,4 @@
-package app.demo.neurade.configs;
+package app.demo.neurade.infrastructures.configs;
 
 import app.demo.neurade.security.CustomUserDetailsService;
 import app.demo.neurade.security.JwtAuthFilter;
