@@ -3,6 +3,7 @@ package app.demo.neurade.controllers;
 import app.demo.neurade.domain.dtos.requests.AIPackageCreationRequest;
 import app.demo.neurade.domain.dtos.requests.AIPackagePurchaseRequest;
 import app.demo.neurade.domain.dtos.requests.ValidateKeyRequest;
+import app.demo.neurade.domain.mappers.Mapper;
 import app.demo.neurade.domain.models.AIPackage;
 import app.demo.neurade.security.CustomUserDetails;
 import app.demo.neurade.services.AIPackageService;
@@ -23,6 +24,7 @@ import java.util.Map;
 public class ProductController {
 
     private final AIPackageService aiPackageService;
+    private final Mapper mapper;
 
     @PostMapping("ai-model/api-key/validate")
     public ResponseEntity<?> getAIModels(@Valid @RequestBody ValidateKeyRequest req) {
@@ -56,6 +58,31 @@ public class ProductController {
                                 req.getAiPackageId()
                         )
                 )
+        );
+    }
+
+    @GetMapping("/ai-packages")
+    public ResponseEntity<?> getAllAIPackages() {
+        return ResponseEntity.ok(
+                aiPackageService.getAllPackages()
+                        .stream()
+                        .map(mapper::toDto)
+                        .toList()
+        );
+    }
+
+    @GetMapping("/ai-package/{packageId}")
+    public ResponseEntity<?> getAIPackageById(@PathVariable Integer packageId) {
+        AIPackage aiPackage = aiPackageService.getPackageById(packageId);
+        return ResponseEntity.ok(
+                mapper.toDto(aiPackage)
+        );
+    }
+
+    @GetMapping("/ai-package/instance/{instanceId}")
+    public ResponseEntity<?> getAIPackageInstanceById(@PathVariable String instanceId) {
+        return ResponseEntity.ok(
+                aiPackageService.getInstanceById(java.util.UUID.fromString(instanceId))
         );
     }
 }

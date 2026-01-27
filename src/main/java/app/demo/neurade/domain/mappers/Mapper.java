@@ -61,4 +61,17 @@ public class Mapper {
                 .expiryDate(aiPackageInstance.getExpiryDate())
                 .build();
     }
+
+    public AIPackageDTO toDto(AIPackage aiPackage) {
+        return AIPackageDTO.builder()
+                .id(aiPackage.getId())
+                .name(aiPackage.getName())
+                .price(aiPackage.getPrice())
+                .totalToken(aiPackage.getTotalToken())
+                .tokenRateLimit(aiPackage.getTokenRateLimit())
+                .model(aiPackage.getModel())
+                .durationInDays(aiPackage.getDurationInDays())
+                .description(aiPackage.getDescription())
+                .build();
+    }
 }
