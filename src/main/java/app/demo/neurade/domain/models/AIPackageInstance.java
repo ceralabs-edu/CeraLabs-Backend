@@ -30,7 +30,6 @@ public class AIPackageInstance {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "class_id",
-            nullable = false,
             foreignKey = @ForeignKey(name = "fk_ai_package_instance_class")
     )
     private Classroom classRoom;

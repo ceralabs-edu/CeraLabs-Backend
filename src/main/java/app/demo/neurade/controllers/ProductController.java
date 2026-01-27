@@ -6,6 +6,7 @@ import app.demo.neurade.domain.dtos.requests.ValidateKeyRequest;
 import app.demo.neurade.domain.mappers.Mapper;
 import app.demo.neurade.domain.models.AIPackage;
 import app.demo.neurade.security.CustomUserDetails;
+import app.demo.neurade.services.AIPackageInstanceService;
 import app.demo.neurade.services.AIPackageService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -25,6 +26,7 @@ public class ProductController {
 
     private final AIPackageService aiPackageService;
     private final Mapper mapper;
+    private final AIPackageInstanceService aIPackageInstanceService;
 
     @PostMapping("ai-model/api-key/validate")
     public ResponseEntity<?> getAIModels(@Valid @RequestBody ValidateKeyRequest req) {
@@ -82,7 +84,7 @@ public class ProductController {
     @GetMapping("/ai-package/instance/{instanceId}")
     public ResponseEntity<?> getAIPackageInstanceById(@PathVariable String instanceId) {
         return ResponseEntity.ok(
-                aiPackageService.getInstanceById(java.util.UUID.fromString(instanceId))
+                aIPackageInstanceService.getInstanceById(java.util.UUID.fromString(instanceId))
         );
     }
 }

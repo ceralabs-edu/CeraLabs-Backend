@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 public class Mapper {
     public UserDTO toDto(User user) {
         return UserDTO.builder()
+                .id(user.getId())
                 .email(user.getEmail())
                 .verified(user.getVerified())
                 .build();
@@ -50,16 +51,20 @@ public class Mapper {
     }
 
     public AIPackageInstanceDTO toDto(AIPackageInstance aiPackageInstance, AIPackage aiPackage) {
-        return AIPackageInstanceDTO.builder()
+        var builder = AIPackageInstanceDTO.builder()
                 .instanceId(aiPackageInstance.getId())
                 .aiPackageId(aiPackageInstance.getAiPackage().getId())
-                .classId(aiPackageInstance.getClassRoom().getId())
                 .purchaserId(aiPackageInstance.getBuyer().getId())
                 .remainingToken(aiPackageInstance.getRemainingToken())
                 .totalToken(aiPackage.getTotalToken())
                 .purchaseDate(aiPackageInstance.getPurchaseDate())
-                .expiryDate(aiPackageInstance.getExpiryDate())
-                .build();
+                .expiryDate(aiPackageInstance.getExpiryDate());
+
+        if (aiPackageInstance.getClassRoom() != null) {
+            builder.classId(aiPackageInstance.getClassRoom().getId());
+        }
+
+        return builder.build();
     }
 
     public AIPackageDTO toDto(AIPackage aiPackage) {
