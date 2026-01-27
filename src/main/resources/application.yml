@@ -7,7 +7,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
@@ -21,10 +21,15 @@ minio:
   bucket:
     pfp: neurade-pfp
 
+gemini:
+  api-key: ${GEMINI_API_KEY}
+
+llm:
+  validate-endpoint: ${LLM_VALIDATE_ENDPOINT}
 application:
   security:
     jwt:
       secret-key: a2fc2b980de9ebd2351e837fb53057d389058796fcc11a01de41fcba542328bc
-      expiration: 3600000 # 1 hour in milliseconds
+      expiration: 86400000 # 1 day in milliseconds
       refresh-token:
         expiration:  604800000 # 7 days in milliseconds

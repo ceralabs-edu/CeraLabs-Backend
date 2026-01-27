@@ -1,7 +1,7 @@
 package app.demo.neurade.controllers;
 
-import app.demo.neurade.domain.dtos.request.ChangeUserPasswordRequest;
-import app.demo.neurade.domain.dtos.request.ChangeUserRoleRequest;
+import app.demo.neurade.domain.dtos.requests.ChangeUserPasswordRequest;
+import app.demo.neurade.domain.dtos.requests.ChangeUserRoleRequest;
 import app.demo.neurade.services.AdminService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

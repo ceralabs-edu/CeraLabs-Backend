@@ -1,7 +1,7 @@
 package app.demo.neurade.controllers;
 
 import app.demo.neurade.domain.dtos.ClassDTO;
-import app.demo.neurade.domain.dtos.request.ClassCreationRequest;
+import app.demo.neurade.domain.dtos.requests.ClassCreationRequest;
 import app.demo.neurade.domain.mappers.Mapper;
 import app.demo.neurade.domain.models.Classroom;
 import app.demo.neurade.security.CustomUserDetails;

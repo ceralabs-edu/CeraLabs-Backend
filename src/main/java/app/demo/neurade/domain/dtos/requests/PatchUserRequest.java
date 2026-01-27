@@ -1,4 +1,4 @@
-package app.demo.neurade.domain.dtos.request;
+package app.demo.neurade.domain.dtos.requests;
 
 import lombok.*;
 

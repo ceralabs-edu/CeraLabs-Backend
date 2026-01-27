@@ -43,8 +43,8 @@ public class AIPackageInstance {
     )
     private User buyer;
 
-    @Column(name = "used_token", nullable = false)
-    private Long usedToken;
+    @Column(name = "remaining_token", nullable = false)
+    private Long remainingToken;
 
     @Column(name = "purchase_date", nullable = false)
     private LocalDateTime purchaseDate;
