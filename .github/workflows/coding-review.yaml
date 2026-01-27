@@ -1,0 +1,37 @@
+# GitHub Actions workflow for auto-grading system integration
+name: Auto Review Integration
+
+# Define events that trigger this workflow
+on:
+  # Trigger on pull request events
+  pull_request:
+    types: [opened, edited, closed, reopened]
+  
+  # Trigger on issue comment events  
+  issue_comment:
+    types: [created, edited, deleted]
+  
+  # Trigger on pull request review events
+  pull_request_review:
+    types: [submitted, edited, dismissed]
+  
+  # Trigger on pull request review comment events
+  pull_request_review_comment:
+    types: [created, edited, deleted]
+
+# Define jobs to run
+jobs:
+  # Job to notify the backend system
+  notify:
+    name: Notify Backend System
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Use the custom action to send webhook to backend
+      - name: Send webhook to backend
+        uses: test-hook-neurade/hook-backend@v1
+        env:
+          # Backend API endpoint URL from secrets
+          BACKEND_URL: ${{ secrets.BACKEND_URL }}
+          # Authentication token from secrets  
+          SECRET_TOKEN: ${{ secrets.SECRET_TOKEN }}
