@@ -23,7 +23,7 @@ public class ClassParticipant {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(
             name = "class_id",
             nullable = false,
@@ -31,7 +31,7 @@ public class ClassParticipant {
     )
     private Classroom clazz;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(
             name = "user_id",
             nullable = false,

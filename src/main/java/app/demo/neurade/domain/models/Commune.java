@@ -46,7 +46,7 @@ public class Commune {
     @Column(name = "path_with_type", nullable = false, length = 500)
     private String pathWithType;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(
             name = "province_code",
             referencedColumnName = "code",

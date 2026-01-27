@@ -1,7 +1,8 @@
 package app.demo.neurade.services.impl;
 
-import app.demo.neurade.domain.models.RoleType;
+import app.demo.neurade.domain.models.Role;
 import app.demo.neurade.domain.models.User;
+import app.demo.neurade.repositories.RoleRepository;
 import app.demo.neurade.repositories.UserRepository;
 import app.demo.neurade.services.AdminService;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 public class AdminServiceImpl implements AdminService {
 
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -26,10 +28,12 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public User changeRole(String email, RoleType newRole) {
+    public User changeRole(String email, Short newRoleId) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found for email: " + email));
 
+        Role newRole = roleRepository.findById(newRoleId)
+                .orElseThrow(() -> new IllegalArgumentException("Role not found for id: " + newRoleId));
         user.setRole(newRole);
         return userRepository.save(user);
     }

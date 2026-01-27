@@ -27,7 +27,7 @@ public class AdminController {
     @Operation(summary = "Update user role", description = "Change the role of a user")
     @PatchMapping("/users/{email}/role")
     public ResponseEntity<?> updateRole(@RequestBody ChangeUserRoleRequest req) {
-        adminService.changeRole(req.getEmail(), req.getRole());
+        adminService.changeRole(req.getEmail(), req.getRoleId());
         return ResponseEntity.ok(
                 Map.of(
                         "message", "User role updated successfully"

@@ -43,7 +43,7 @@ public class UserInformation {
     @Column(name = "last_name", length = 100)
     private String lastName;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(
             name = "city_code",
             nullable = false,
@@ -52,7 +52,7 @@ public class UserInformation {
     )
     private Province city;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(
             name = "sub_district_code",
             referencedColumnName = "code",

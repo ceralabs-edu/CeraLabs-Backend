@@ -21,7 +21,7 @@ public class Classroom {
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(
             name = "creator_id",
             nullable = false,

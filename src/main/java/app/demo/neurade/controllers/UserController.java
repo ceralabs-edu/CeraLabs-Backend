@@ -28,7 +28,7 @@ public class UserController {
 
     @Operation(summary = "Update user information", description = "Update user profile information")
     @PatchMapping("/{email}")
-    public ResponseEntity<?> updateUser(@PathVariable String email, @RequestBody PatchUserRequest req) throws Exception {
+    public ResponseEntity<?> updateUser(@PathVariable String email, @RequestBody PatchUserRequest req) {
         UserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (userDetails == null) throw new UnauthorizedException("Unauthorized");
         User currentUser = ((CustomUserDetails) userDetails).getUser();

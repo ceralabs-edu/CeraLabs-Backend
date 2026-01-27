@@ -39,15 +39,18 @@ public class AIPackageServiceImpl implements AIPackageService {
         Classroom classroom = classroomRepository.findById(classId)
                 .orElseThrow(() -> new RuntimeException("Classroom not found with id: " + classId));
 
-        boolean canPurchase = switch (buyer.getRole()) {
-            case RoleType.ADMIN -> true;
-            case RoleType.ORGANIZATION -> peopleManagementRepository.existsByManagerIdAndManagedId(
+        boolean canPurchase = false;
+
+        if (buyer.getRole().isRoleType(RoleType.ADMIN)) {
+            canPurchase = true;
+        } else if (buyer.getRole().isRoleType(RoleType.ORGANIZATION)) {
+            canPurchase = peopleManagementRepository.existsByManagerIdAndManagedId(
                     buyer.getId(),
                     classroom.getCreator().getId()
             );
-            case RoleType.TEACHER -> buyer.getId().equals(classroom.getCreator().getId());
-            default -> false;
-        };
+        } else if (buyer.getRole().isRoleType(RoleType.TEACHER)) {
+            canPurchase = buyer.getId().equals(classroom.getCreator().getId());
+        }
 
         if (!canPurchase) {
             throw new RuntimeException("User does not have permission to purchase AI Package for this class");

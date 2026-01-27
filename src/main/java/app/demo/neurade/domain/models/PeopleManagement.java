@@ -28,7 +28,7 @@ public class PeopleManagement {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(
             name = "manager_id",
             nullable = false,
@@ -36,7 +36,7 @@ public class PeopleManagement {
     )
     private User manager;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(
             name = "managed_id",
             nullable = false,

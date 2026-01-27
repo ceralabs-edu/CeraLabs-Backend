@@ -19,7 +19,7 @@ public class AIPackageInstance {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(
             name = "ai_package_id",
             nullable = false,
@@ -35,7 +35,7 @@ public class AIPackageInstance {
     )
     private Classroom classRoom;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(
             name = "purchased_by",
             nullable = false,

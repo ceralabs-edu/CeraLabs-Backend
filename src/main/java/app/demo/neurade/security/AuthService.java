@@ -2,10 +2,7 @@ package app.demo.neurade.security;
 
 import app.demo.neurade.domain.mappers.Mapper;
 import app.demo.neurade.domain.models.*;
-import app.demo.neurade.repositories.CommuneRepository;
-import app.demo.neurade.repositories.ProvinceRepository;
-import app.demo.neurade.repositories.UserInformationRepository;
-import app.demo.neurade.repositories.UserRepository;
+import app.demo.neurade.repositories.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +20,7 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final UserInformationRepository userInformationRepository;
+    private final RoleRepository roleRepository;
     private final ProvinceRepository provinceRepository;
     private final CommuneRepository communeRepository;
     private final PasswordEncoder passwordEncoder;
@@ -40,21 +38,23 @@ public class AuthService {
         }
 
         if (
-                req.getRole().equals(RoleType.ADMIN) &&
+                req.getRoleId() == RoleType.ADMIN.getRoleId() &&
                 !(
                         userDetails instanceof CustomUserDetails cud
-                        && cud.getUser().getRole().equals(RoleType.ADMIN)
+                        && cud.getUser().getRole().isRoleType(RoleType.ADMIN)
                 )
         ) {
             log.warn("Only admin can register another admin");
             throw new IllegalArgumentException("Only admin can register another admin");
         }
 
+        Role role = roleRepository.findById(req.getRoleId()).orElse(null);
+
         // Create new user
         User user = User.builder()
                 .email(req.getEmail())
                 .password(passwordEncoder.encode(req.getPassword()))
-                .role(req.getRole())
+                .role(role)
                 .build();
 
         user = userRepository.save(user);

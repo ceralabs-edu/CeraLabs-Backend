@@ -1,6 +1,5 @@
 package app.demo.neurade.domain.dtos.request;
 
-import app.demo.neurade.domain.models.RoleType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,5 +11,5 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ChangeUserRoleRequest {
     private String email;
-    private RoleType role;
+    private Short roleId;
 }
