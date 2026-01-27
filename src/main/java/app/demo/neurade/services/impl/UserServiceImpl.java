@@ -1,8 +1,6 @@
 package app.demo.neurade.services.impl;
 
-import app.demo.neurade.domain.dtos.UserDTO;
 import app.demo.neurade.domain.dtos.requests.PatchUserRequest;
-import app.demo.neurade.domain.mappers.Mapper;
 import app.demo.neurade.domain.models.RoleType;
 import app.demo.neurade.domain.models.User;
 import app.demo.neurade.domain.models.UserInformation;
@@ -31,7 +29,6 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserInformationRepository infoRepository;
-    private final Mapper mapper;
     private final PeopleManagementRepository peopleManagementRepository;
 
     @Override
@@ -63,11 +60,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserDTO> getManagedUsers(User user) {
-        List<User> users = getUsersUnderManagement(user);
-        return users.stream().map(mapper::toDto).toList();
-    }
-
     public List<User> getUsersUnderManagement(User user) {
         List<User> users = new ArrayList<>();
         if (user.getRole().isRoleType(RoleType.ADMIN)) {

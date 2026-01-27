@@ -46,7 +46,10 @@ public class UserController {
     public ResponseEntity<?> getUsersUnderManagement() {
         CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (userDetails == null) throw new UnauthorizedException("Unauthorized");
-        List<UserDTO> users = userService.getManagedUsers(userDetails.getUser());
+        List<UserDTO> users = userService.getUsersUnderManagement(userDetails.getUser())
+                .stream()
+                .map(mapper::toDto)
+                .toList();
         return ResponseEntity.ok(
                 Map.of(
                         "message", "Users retrieved successfully",

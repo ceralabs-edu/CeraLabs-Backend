@@ -34,8 +34,10 @@ public class Mapper {
 
     public ClassDTO toDto(Classroom classroom) {
         return ClassDTO.builder()
+                .classId(classroom.getId())
                 .name(classroom.getName())
                 .creatorId(classroom.getCreator().getId())
+                .description(classroom.getDescription())
                 .build();
     }
 

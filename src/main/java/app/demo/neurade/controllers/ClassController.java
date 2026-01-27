@@ -4,6 +4,7 @@ import app.demo.neurade.domain.dtos.ClassDTO;
 import app.demo.neurade.domain.dtos.requests.ClassCreationRequest;
 import app.demo.neurade.domain.mappers.Mapper;
 import app.demo.neurade.domain.models.Classroom;
+import app.demo.neurade.exception.UnauthorizedException;
 import app.demo.neurade.security.CustomUserDetails;
 import app.demo.neurade.services.ClassService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -62,6 +63,7 @@ public class ClassController {
                     description = "Forbidden - insufficient role"
             )
     })
+
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/create")
     public ResponseEntity<?> createClass(
@@ -73,6 +75,8 @@ public class ClassController {
                         .getAuthentication()
                         .getPrincipal();
 
+        if (userDetails == null) throw new UnauthorizedException("Unauthorized");
+
         Classroom newClass =
                 classService.createClass(userDetails.getUser(), req);
 
@@ -81,6 +85,24 @@ public class ClassController {
                         "message", "Class created successfully",
                         "data", mapper.toDto(newClass)
                 )
+        );
+    }
+
+    @GetMapping
+    public ResponseEntity<?> getAllClassesUnderManagement() {
+        CustomUserDetails userDetails =
+                (CustomUserDetails) SecurityContextHolder
+                        .getContext()
+                        .getAuthentication()
+                        .getPrincipal();
+
+        if (userDetails == null) throw new UnauthorizedException("Unauthorized");
+
+        return ResponseEntity.ok(
+                classService.getAllClassesUnderManagement(userDetails.getUser())
+                        .stream()
+                        .map(mapper::toDto)
+                        .toList()
         );
     }
 }
