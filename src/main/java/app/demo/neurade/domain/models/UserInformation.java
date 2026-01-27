@@ -1,6 +1,5 @@
 package app.demo.neurade.domain.models;
 
-import app.demo.neurade.miscs.StringListConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -70,7 +69,6 @@ public class UserInformation {
     private String grade;
 
     @Column(name = "favorite_subjects")
-    @Convert(converter = StringListConverter.class)
     private List<String> favoriteSubjects;
 
     @Column(name = "bio")

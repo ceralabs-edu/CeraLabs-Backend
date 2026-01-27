@@ -8,6 +8,8 @@ import lombok.Setter;
 @Setter
 @Builder
 public class ClassDTO {
+    private Long classId;
     private Long creatorId;
     private String name;
+    private String description;
 }

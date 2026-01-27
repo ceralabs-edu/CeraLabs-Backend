@@ -5,6 +5,7 @@ import app.demo.neurade.domain.models.RoleType;
 import app.demo.neurade.domain.models.User;
 import app.demo.neurade.domain.models.UserInformation;
 import app.demo.neurade.exception.UnauthorizedException;
+import app.demo.neurade.repositories.PeopleManagementRepository;
 import app.demo.neurade.repositories.UserInformationRepository;
 import app.demo.neurade.repositories.UserRepository;
 import app.demo.neurade.services.UserService;
@@ -18,7 +19,9 @@ import org.springframework.stereotype.Service;
 
 import java.beans.PropertyDescriptor;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -26,11 +29,12 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserInformationRepository infoRepository;
+    private final PeopleManagementRepository peopleManagementRepository;
 
     @Override
     @Transactional
     public UserInformation updateUserInfo(User currentUser, String email, PatchUserRequest req) {
-        if (!currentUser.getRole().getId().equals(RoleType.ADMIN.getRoleId()) && !currentUser.getEmail().equals(email)) {
+        if (!currentUser.getRole().isRoleType(RoleType.ADMIN) && !currentUser.getEmail().equals(email)) {
             throw new UnauthorizedException("You are not authorized to update this user's information");
         }
         UserInformation info = infoRepository.findByUserEmail(email)
@@ -53,5 +57,26 @@ public class UserServiceImpl implements UserService {
                 .map(PropertyDescriptor::getName)
                 .filter(name -> src.getPropertyValue(name) == null)
                 .toArray(String[]::new);
+    }
+
+    @Override
+    public List<User> getUsersUnderManagement(User user) {
+        List<User> users = new ArrayList<>();
+        if (user.getRole().isRoleType(RoleType.ADMIN)) {
+            users = userRepository.findAll();
+            users.remove(user);
+        } else if (
+                user.getRole().isRoleType(RoleType.ORGANIZATION) ||
+            user.getRole().isRoleType(RoleType.TEACHER)
+        ) {
+            users = peopleManagementRepository.findManagedUsersByManagerId(user.getId());
+        }
+        return users;
+    }
+
+    public List<User> getUsersUnderManagementByEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        return getUsersUnderManagement(user);
     }
 }

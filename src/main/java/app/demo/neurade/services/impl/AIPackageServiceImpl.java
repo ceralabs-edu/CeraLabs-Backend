@@ -22,6 +22,8 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -131,5 +133,27 @@ public class AIPackageServiceImpl implements AIPackageService {
 
         log.info("Received API key validation response: {}", extResponse);
         return mapper.toDto(extResponse);
+    }
+
+    @Override
+    @Transactional
+    public AIPackageInstanceDTO getInstanceById(UUID instanceId) {
+        AIPackageInstance instance = aiPackageInstanceRepository.findById(instanceId)
+                .orElseThrow(() -> new RuntimeException("AI Package Instance not found with id: " + instanceId));
+
+        AIPackage aiPackage = instance.getAiPackage();
+
+        return mapper.toDto(instance, aiPackage);
+    }
+
+    @Override
+    public AIPackage getPackageById(Integer packageId) {
+        return aiPackageRepository.findById(packageId)
+                .orElseThrow(() -> new RuntimeException("AI Package not found with id: " + packageId));
+    }
+
+    @Override
+    public List<AIPackage> getAllPackages() {
+        return aiPackageRepository.findAll();
     }
 }

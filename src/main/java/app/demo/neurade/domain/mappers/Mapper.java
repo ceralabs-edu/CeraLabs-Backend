@@ -34,8 +34,10 @@ public class Mapper {
 
     public ClassDTO toDto(Classroom classroom) {
         return ClassDTO.builder()
+                .classId(classroom.getId())
                 .name(classroom.getName())
                 .creatorId(classroom.getCreator().getId())
+                .description(classroom.getDescription())
                 .build();
     }
 
@@ -57,6 +59,19 @@ public class Mapper {
                 .totalToken(aiPackage.getTotalToken())
                 .purchaseDate(aiPackageInstance.getPurchaseDate())
                 .expiryDate(aiPackageInstance.getExpiryDate())
+                .build();
+    }
+
+    public AIPackageDTO toDto(AIPackage aiPackage) {
+        return AIPackageDTO.builder()
+                .id(aiPackage.getId())
+                .name(aiPackage.getName())
+                .price(aiPackage.getPrice())
+                .totalToken(aiPackage.getTotalToken())
+                .tokenRateLimit(aiPackage.getTokenRateLimit())
+                .model(aiPackage.getModel())
+                .durationInDays(aiPackage.getDurationInDays())
+                .description(aiPackage.getDescription())
                 .build();
     }
 }

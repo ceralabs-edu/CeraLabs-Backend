@@ -1,5 +1,6 @@
 package app.demo.neurade.controllers;
 
+import app.demo.neurade.domain.dtos.UserDTO;
 import app.demo.neurade.domain.dtos.requests.PatchUserRequest;
 import app.demo.neurade.domain.mappers.Mapper;
 import app.demo.neurade.domain.models.User;
@@ -14,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -36,6 +38,23 @@ public class UserController {
                 Map.of(
                         "message", "User information updated successfully",
                         "data", mapper.toDto(info)
+                )
+        );
+    }
+
+    @GetMapping("/managed")
+    @Operation(summary = "Get users under management", description = "Retrieve a list of users under the management of the current user")
+    public ResponseEntity<?> getUsersUnderManagement() {
+        CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (userDetails == null) throw new UnauthorizedException("Unauthorized");
+        List<UserDTO> users = userService.getUsersUnderManagement(userDetails.getUser())
+                .stream()
+                .map(mapper::toDto)
+                .toList();
+        return ResponseEntity.ok(
+                Map.of(
+                        "message", "Users retrieved successfully",
+                        "data", users
                 )
         );
     }
