@@ -42,7 +42,8 @@ public class UserController {
         );
     }
 
-    @GetMapping
+    @GetMapping("/managed")
+    @Operation(summary = "Get users under management", description = "Retrieve a list of users under the management of the current user")
     public ResponseEntity<?> getUsersUnderManagement() {
         CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (userDetails == null) throw new UnauthorizedException("Unauthorized");
