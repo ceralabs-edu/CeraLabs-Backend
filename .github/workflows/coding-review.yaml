@@ -5,8 +5,7 @@ name: Auto Review Integration
 on:
   # Trigger on pull request events
   pull_request:
-    types: [opened, edited, closed, reopened]
-  
+    types: [opened, edited, closed, reopened, synchronize]  
   # Trigger on issue comment events  
   issue_comment:
     types: [created, edited, deleted]
