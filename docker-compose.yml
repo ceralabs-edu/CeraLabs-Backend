@@ -4,67 +4,84 @@ services:
     container_name: postgres-service
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres123
-      POSTGRES_DB: social
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
-      - "5436:5432"
+      - "5463:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./ci/data.csv:/docker-entrypoint-initdb.d/data.csv
       - ./ci/import_address.sql:/docker-entrypoint-initdb.d/import_address.sql
-      - ./ci/datamodel.sql:/docker-entrypoint-initdb.d/datamodel.sql
-      - ./ci/address_information.sql:/docker-entrypoint-initdb.d/address_information.sql
-
     networks:
-      - elk-network
+      - app-network
 
   minio:
-    image: quay.io/minio/minio
+    image: minio/minio:latest
     container_name: minio-service
     restart: always
-    environment:
-      MINIO_ROOT_USER: admin
-      MINIO_ROOT_PASSWORD: admin123
-    ports:
-      - "9000:9000" 
-      - "9002:9001"  
     command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET}
+    ports:
+      - "9003:9000"   # API
+      - "9006:9001"   # Console UI
     volumes:
       - minio_data:/data
     networks:
-      - elk-network
+      - app-network
 
-  # app:
-  #   build: .
-  #   container_name: spring-app
-  #   restart: always
-  #   ports:
-  #     - "8080:8080"
-  #   environment:
-  #     - POSTGRES_HOST=postgres
-  #     - POSTGRES_PORT=5432
-  #     - POSTGRES_DB=social
-  #     - POSTGRES_USER=postgres
-  #     - POSTGRES_PASSWORD=postgres
-  #     - MAIL_NAME=hungvq1601@gmail.com
-  #     - MAIL_PASSWORD=mbvc umir hxbx kmvs
-  #     - SCORE=8
-  #     - ACTIVE_PROFILE=dev
-  #     - MINIO_ENDPOINT=http://minio:9000
-  #     - MINIO_ACCESS_KEY=admin
-  #     - MINIO_SECRET_KEY=admin123
-  #     - MINIO_BUCKET_NAME=media-bucket
-  #   depends_on:
-  #     - postgres
-  #     - minio
-  #   networks:
-  #     - elk-network
+  app:
+    build: .
+    container_name: neurade-app
+    restart: always
+    ports:
+      - "8836:8080"
+    environment:
+      # ===== Database =====
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+
+      # ===== MinIO =====
+      MINIO_HOST: ${MINIO_HOST}
+      MINIO_PORT: ${MINIO_PORT}
+      MINIO_ACCESS: ${MINIO_ACCESS}
+      MINIO_SECRET: ${MINIO_SECRET}
+      MINIO_BUCKET_PFP: ${MINIO_BUCKET_PFP}
+      MINIO_BUCKET_CHAT: ${MINIO_BUCKET_CHAT}
+
+      # ===== LLM =====
+      LLM_PROVIDER: ${LLM_PROVIDER}
+      LLM_API_KEY: ${LLM_API_KEY}
+      LLM_MODEL: ${LLM_MODEL}
+      LLM_VALIDATE_ENDPOINT: ${LLM_VALIDATE_ENDPOINT}
+      LLM_QA_ENDPOINT: ${LLM_QA_ENDPOINT}
+      LLM_TOP_K: ${LLM_TOP_K}
+
+      # ===== JWT =====
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_EXPIRATION: ${JWT_EXPIRATION}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION}
+
+      # ===== JPA =====
+      JPA_DDL_AUTO: ${JPA_DDL_AUTO}
+      JPA_SHOW_SQL: ${JPA_SHOW_SQL}
+      JPA_FORMAT_SQL: ${JPA_FORMAT_SQL}
+
+    depends_on:
+      - postgres
+      - minio
+    networks:
+      - app-network
 
 networks:
-  elk-network:
+  app-network:
     driver: bridge
 
 volumes:
-  postgres_data: {}
-  minio_data: {}
+  postgres_data:
+  minio_data:
