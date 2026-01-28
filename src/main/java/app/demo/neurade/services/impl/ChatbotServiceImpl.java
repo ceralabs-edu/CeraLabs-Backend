@@ -148,14 +148,7 @@ public class ChatbotServiceImpl implements ChatbotService {
 
         log.info("LLM total token used (guardian + assistant): {}", tokenUsed);
 
-        if (tokenUsed > 0) {
-            if (usage.getRateLimitTokenLimit() != null) {
-                usage.setRateLimitTokenCount(
-                        usage.getRateLimitTokenCount() + tokenUsed
-                );
-            }
-            usage.setTokenUsed(usage.getTokenUsed() + tokenUsed);
-        }
+        usage.useToken(tokenUsed);
 
         userInstanceUsageRepository.save(usage);
 

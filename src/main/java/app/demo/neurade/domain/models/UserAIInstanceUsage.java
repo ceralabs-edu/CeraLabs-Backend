@@ -91,4 +91,14 @@ public class UserAIInstanceUsage {
     public boolean canUseThisPackage() {
         return isWithinTotalLimit() && isWithinRateLimit();
     }
+
+    public void useToken(long num) {
+        if (num <= 0) {
+            throw new IllegalArgumentException("token number must be greater than zero");
+        }
+        this.tokenUsed += num;
+        if (rateLimitTokenLimit != null) {
+            this.rateLimitTokenCount += num;
+        }
+    }
 }
