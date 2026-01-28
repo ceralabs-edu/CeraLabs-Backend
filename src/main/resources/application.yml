@@ -23,12 +23,15 @@ minio:
     pfp: ${MINIO_BUCKET_PFP:neurade-pfp}
     chat: ${MINIO_BUCKET_CHAT:neurade-chat}
 
-gemini:
-  api-key: ${GEMINI_API_KEY}
-
 llm:
-  validate-endpoint: ${LLM_VALIDATE_ENDPOINT}
-  qa-endpoint: ${LLM_QA_ENDPOINT}
+  provider: ${LLM_PROVIDER:gemini}
+  api-key: ${LLM_API_KEY}
+  model: ${LLM_MODEL:gemini-2.5-flash}
+  top-k: ${LLM_TOP_K:5}
+  validate:
+    endpoint: ${LLM_VALIDATE_ENDPOINT}
+  qa:
+    endpoint: ${LLM_QA_ENDPOINT}
 
 application:
   security:

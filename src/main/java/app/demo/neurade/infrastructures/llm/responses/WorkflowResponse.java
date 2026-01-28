@@ -12,11 +12,17 @@ import java.util.List;
 public class WorkflowResponse {
 
     private List<String> images;
-    private List<List<String>> queries;
+//    private List<List<String>> queries;
     private Guardian guardian;
 
     @JsonProperty("assistant")
     private Assistant assistant;
+
+    @JsonProperty("assistant_raw")
+    private AssistantRaw assistantRaw;
+
+    @JsonProperty("guardian_raw")
+    private GuardianRaw guardianRaw;
 
     @Getter
     @Setter
@@ -25,6 +31,7 @@ public class WorkflowResponse {
         private List<String> problemType;
         private String difficulty;
         private String route;
+        private String reply;
     }
 
     @Getter
@@ -43,5 +50,36 @@ public class WorkflowResponse {
         private String title;
         private String solving;
         private String explanation;
+    }
+
+    @Getter
+    @Setter
+    public static class AssistantRaw {
+        private String content;
+
+        @JsonProperty("usage_metadata")
+        private UsageMetadata usageMetadata;
+    }
+
+    @Getter
+    @Setter
+    public static class GuardianRaw {
+        private String content;
+
+        @JsonProperty("usage_metadata")
+        private UsageMetadata usageMetadata;
+    }
+
+    @Getter
+    @Setter
+    public static class UsageMetadata {
+        @JsonProperty("input_tokens")
+        private long inputTokens;
+
+        @JsonProperty("output_tokens")
+        private long outputTokens;
+
+        @JsonProperty("total_tokens")
+        private long totalTokens;
     }
 }

@@ -76,4 +76,19 @@ public class UserAIInstanceUsage {
             this.lastResetTime = now;
         }
     }
+
+    public boolean isWithinTotalLimit() {
+        return tokenUsed < limitToken;
+    }
+
+    public boolean isWithinRateLimit() {
+        if (rateLimitTokenLimit == null) {
+            return true; // No rate limit set
+        }
+        return rateLimitTokenCount < rateLimitTokenLimit;
+    }
+
+    public boolean canUseThisPackage() {
+        return isWithinTotalLimit() && isWithinRateLimit();
+    }
 }

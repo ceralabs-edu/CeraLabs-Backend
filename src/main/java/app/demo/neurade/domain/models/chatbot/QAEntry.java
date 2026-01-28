@@ -13,7 +13,12 @@ import java.util.List;
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@Table(name = "qa_entries")
+@Table(
+        name = "qa_entries",
+        indexes = {
+                @Index(name = "idx_qa_conversation_created", columnList = "conversation_id, created_at desc")
+        }
+)
 public class QAEntry {
 
     @Id

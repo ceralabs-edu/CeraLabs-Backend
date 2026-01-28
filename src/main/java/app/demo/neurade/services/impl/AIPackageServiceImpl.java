@@ -40,7 +40,7 @@ public class AIPackageServiceImpl implements AIPackageService {
     private final EntityManager entityManager;
     private final AIPackageInstanceService aIPackageInstanceService;
 
-    @Value("${llm.validate-endpoint}")
+    @Value("${llm.validate.endpoint}")
     private String verificationEndpoint;
 
     @Override
