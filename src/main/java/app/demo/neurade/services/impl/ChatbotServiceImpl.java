@@ -1,23 +1,15 @@
 package app.demo.neurade.services.impl;
 
-import app.demo.neurade.domain.dtos.ChatAssetUploadDTO;
+import app.demo.neurade.domain.dtos.ChatPrepareDTO;
 import app.demo.neurade.domain.dtos.ChatResponseDTO;
 import app.demo.neurade.domain.models.User;
-import app.demo.neurade.domain.models.UserAIInstanceUsage;
 import app.demo.neurade.domain.models.chatbot.Conversation;
 import app.demo.neurade.domain.models.chatbot.QAEntry;
-import app.demo.neurade.domain.models.chatbot.QuestionAsset;
-import app.demo.neurade.exception.UnauthorizedException;
 import app.demo.neurade.infrastructures.llm.requests.WorkflowRequest;
 import app.demo.neurade.infrastructures.llm.responses.WorkflowResponse;
-import app.demo.neurade.infrastructures.repositories.ConversationRepository;
 import app.demo.neurade.infrastructures.repositories.QAEntryRepository;
-import app.demo.neurade.infrastructures.repositories.QuestionAssetRepository;
-import app.demo.neurade.infrastructures.repositories.UserInstanceUsageRepository;
 import app.demo.neurade.services.ChatbotService;
-import app.demo.neurade.services.FileService;
-import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
+import app.demo.neurade.services.ChatbotTxService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,12 +33,9 @@ import java.util.stream.Stream;
 @Slf4j
 public class ChatbotServiceImpl implements ChatbotService {
 
-    private final ConversationRepository conversationRepository;
     private final RestTemplate restTemplate;
     private final QAEntryRepository qaEntryRepository;
-    private final UserInstanceUsageRepository userInstanceUsageRepository;
-    private final FileService fileService;
-    private final QuestionAssetRepository questionAssetRepository;
+    private final ChatbotTxService chatbotTxService;
 
     @Value("${llm.qa.endpoint}")
     private String workflowUrl;
@@ -61,7 +50,6 @@ public class ChatbotServiceImpl implements ChatbotService {
     private int topK;
 
     @Override
-    @Transactional
     public ChatResponseDTO chat(
             User user,
             UUID instanceId,
@@ -70,57 +58,19 @@ public class ChatbotServiceImpl implements ChatbotService {
             List<MultipartFile> files
     ) {
         /*
-            *
-            * Check user usage limits
-            *
+         * Phase 1: Validate and prepare (in transaction)
          */
-        UserAIInstanceUsage usage = userInstanceUsageRepository
-                .findForUpdate(user, instanceId)
-                .orElseThrow(() ->
-                        new UnauthorizedException("No usage record found for user and instance")
-                );
-
-        if (!usage.canUseThisPackage()) {
-            throw new RuntimeException("User has exceeded their AI package usage limits");
-        }
+        ChatPrepareDTO prepareResult = chatbotTxService.prepareChat(user, instanceId, conversationId, question, files);
 
         /*
-         *
-         * Get or create conversation
-         *
-         */
-
-        Conversation conversation = getOrCreateConversation(conversationId);
-
-        /*
-         *
-         * Save question entry
-         *
-         */
-
-        QAEntry qaEntry = qaEntryRepository.save(
-                QAEntry.builder()
-                .conversation(conversation)
-                .questionText(question)
-                .build()
-        );
-
-        /*
-         *
-         * Upload files and get URLs
-         *
-         */
-        log.info("Uploading {} files for question", files != null ? files.size() : 0);
-        List<String> assetUrls = uploadFilesAndGetUrls(conversation.getId(), qaEntry, files);
-        log.info("Uploaded files. Asset URLs: {}", assetUrls);
-
-        /*
-         *
-         * Call workflow
-         *
+         * Phase 2: Call workflow (outside transaction - no DB lock held)
          */
         log.info("Calling workflow for question: {}", question);
-        WorkflowResponse workflowResponse = callWorkflow(conversation, question, assetUrls);
+        WorkflowResponse workflowResponse = callWorkflow(
+                prepareResult.conversation(),
+                question,
+                prepareResult.assetUrls()
+        );
 
         boolean hasAssistant = workflowResponse.getAssistant() != null;
         boolean hasGuardian  = workflowResponse.getGuardian() != null;
@@ -137,11 +87,6 @@ public class ChatbotServiceImpl implements ChatbotService {
                 hasGuardian
         );
 
-        /*
-            *
-            * Extract reply from workflow response
-            *
-         */
         String reply = extractReply(workflowResponse);
 
         if (reply == null || reply.isBlank()) {
@@ -152,75 +97,17 @@ public class ChatbotServiceImpl implements ChatbotService {
         log.info("Extracted reply preview: {}", preview);
 
         /*
-         *
-         * Update QA entry with answer
-         *
+         * Phase 3: Update results (in transaction)
          */
-        qaEntry.setAnswer(reply);
-        qaEntryRepository.save(qaEntry);
-
-        /*
-         *
-         * Update usage statistics
-         *
-         */
-
         long tokenUsed = extractTokenUsed(workflowResponse);
-
         log.info("LLM total token used (guardian + assistant): {}", tokenUsed);
 
-        usage.useToken(tokenUsed);
-
-        userInstanceUsageRepository.save(usage);
+        chatbotTxService.finalizeChat(user, instanceId, prepareResult.qaEntryId(), reply, tokenUsed);
 
         return ChatResponseDTO.builder()
-                .conversationId(conversation.getId())
+                .conversationId(prepareResult.conversation().getId())
                 .response(workflowResponse)
                 .build();
-    }
-
-    private List<String> uploadFilesAndGetUrls(
-            String conversationId,
-            QAEntry qaEntry,
-            List<MultipartFile> files
-    ) {
-        if (files == null || files.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        List<ChatAssetUploadDTO> uploaded = fileService.uploadChatAssets(
-                conversationId,
-                files
-        );
-
-        List<QuestionAsset> assets = uploaded.stream()
-                .map(dto -> QuestionAsset.builder()
-                        .qaEntry(qaEntry)
-                        .type(dto.getType())
-                        .objectUrl(dto.getObjectUrl())
-                        .mimeType(dto.getMimeType())
-                        .orderIndex(dto.getOrderIndex())
-                        .build()
-                )
-                .toList();
-
-        questionAssetRepository.saveAll(assets);
-
-        return uploaded.stream()
-                .map(ChatAssetUploadDTO::getObjectUrl)
-                .toList();
-    }
-
-
-    private Conversation getOrCreateConversation(String conversationId) {
-        if (conversationId == null) {
-            return conversationRepository.save(
-                    Conversation.builder().build()
-            );
-        }
-
-        return conversationRepository.findById(conversationId)
-                .orElseThrow(() -> new EntityNotFoundException("Conversation not found with id: " + conversationId));
     }
 
     private WorkflowResponse callWorkflow(
