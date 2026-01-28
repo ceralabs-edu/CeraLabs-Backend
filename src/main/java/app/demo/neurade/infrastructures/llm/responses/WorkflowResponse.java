@@ -11,7 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 public class WorkflowResponse {
 
-    private List<String> images;
+//    private List<String> images;
 //    private List<List<String>> queries;
     private Guardian guardian;
 

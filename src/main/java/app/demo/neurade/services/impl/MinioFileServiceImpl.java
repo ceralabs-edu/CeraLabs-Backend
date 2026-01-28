@@ -4,11 +4,9 @@ import app.demo.neurade.domain.dtos.ChatAssetUploadDTO;
 import app.demo.neurade.domain.models.chatbot.AssetType;
 import app.demo.neurade.exception.StorageException;
 import app.demo.neurade.services.FileService;
-import io.minio.BucketExistsArgs;
-import io.minio.MakeBucketArgs;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
+import io.minio.*;
 import io.minio.errors.*;
+import io.minio.http.Method;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -44,7 +42,6 @@ public class MinioFileServiceImpl implements FileService {
     @Override
     public List<ChatAssetUploadDTO> uploadChatAssets(
             String conversationId,
-            Long qaId,
             List<MultipartFile> files
     ) {
         List<ChatAssetUploadDTO> results = new ArrayList<>();
@@ -53,7 +50,6 @@ public class MinioFileServiceImpl implements FileService {
         for (MultipartFile file : files) {
             String objectKey = buildChatObjectKey(
                     conversationId,
-                    qaId,
                     order,
                     file.getOriginalFilename()
             );
@@ -62,7 +58,10 @@ public class MinioFileServiceImpl implements FileService {
 
             results.add(ChatAssetUploadDTO.builder()
                     .type(resolveAssetType(file.getContentType()))
-                    .objectUrl(buildObjectUrl(chatBucket, objectKey))
+                    .objectUrl(
+                            buildObjectUrl(chatBucket, objectKey)
+//                            presignGetObject(chatBucket, objectKey, 3600)
+                    )
                     .mimeType(file.getContentType())
                     .orderIndex(order)
                     .build());
@@ -75,14 +74,13 @@ public class MinioFileServiceImpl implements FileService {
 
     private String buildChatObjectKey(
             String conversationId,
-            Long qaId,
             int order,
             String originalFilename
     ) {
         return String.format(
                 "chat/%s/%s/%02d-%s",
                 conversationId,
-                qaId,
+                UUID.randomUUID(),
                 order,
                 originalFilename
         );
@@ -132,6 +130,7 @@ public class MinioFileServiceImpl implements FileService {
                             .bucket(bucketName)
                             .build()
             );
+            ensurePublicReadPolicy(bucketName);
         } catch (Exception e) {
             throw new StorageException("Failed to check if bucket exists: " + e.getMessage());
         }
@@ -151,4 +150,51 @@ public class MinioFileServiceImpl implements FileService {
             System.out.println("Bucket already exists: " + bucketName);
         }
     }
+
+    private void ensurePublicReadPolicy(String bucketName) {
+        String policy = """
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": "*",
+              "Action": ["s3:GetObject"],
+              "Resource": ["arn:aws:s3:::%s/*"]
+            }
+          ]
+        }
+        """.formatted(bucketName);
+
+        try {
+            minioClient.setBucketPolicy(
+                    SetBucketPolicyArgs.builder()
+                            .bucket(bucketName)
+                            .config(policy)
+                            .build()
+            );
+        } catch (Exception e) {
+            throw new StorageException("Failed to set bucket policy: " + e.getMessage());
+        }
+    }
+
+    private String presignGetObject(
+            String bucket,
+            String objectKey,
+            int expirySeconds
+    ) {
+        try {
+            return minioClient.getPresignedObjectUrl(
+                    GetPresignedObjectUrlArgs.builder()
+                            .method(Method.GET)
+                            .bucket(bucket)
+                            .object(objectKey)
+                            .expiry(expirySeconds) // seconds
+                            .build()
+            );
+        } catch (Exception e) {
+            throw new StorageException("Failed to generate presigned URL: " + e.getMessage());
+        }
+    }
+
 }

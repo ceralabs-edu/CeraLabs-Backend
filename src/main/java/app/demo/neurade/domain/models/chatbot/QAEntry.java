@@ -31,7 +31,7 @@ public class QAEntry {
     @Column(columnDefinition = "TEXT", name = "question_text")
     private String questionText; // có thể null
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String answer;
 
     @OneToMany(

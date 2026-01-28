@@ -1,17 +1,21 @@
 package app.demo.neurade.services.impl;
 
+import app.demo.neurade.domain.dtos.ChatAssetUploadDTO;
 import app.demo.neurade.domain.dtos.ChatResponseDTO;
 import app.demo.neurade.domain.models.User;
 import app.demo.neurade.domain.models.UserAIInstanceUsage;
 import app.demo.neurade.domain.models.chatbot.Conversation;
 import app.demo.neurade.domain.models.chatbot.QAEntry;
+import app.demo.neurade.domain.models.chatbot.QuestionAsset;
 import app.demo.neurade.exception.UnauthorizedException;
 import app.demo.neurade.infrastructures.llm.requests.WorkflowRequest;
 import app.demo.neurade.infrastructures.llm.responses.WorkflowResponse;
 import app.demo.neurade.infrastructures.repositories.ConversationRepository;
 import app.demo.neurade.infrastructures.repositories.QAEntryRepository;
+import app.demo.neurade.infrastructures.repositories.QuestionAssetRepository;
 import app.demo.neurade.infrastructures.repositories.UserInstanceUsageRepository;
 import app.demo.neurade.services.ChatbotService;
+import app.demo.neurade.services.FileService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +45,8 @@ public class ChatbotServiceImpl implements ChatbotService {
     private final RestTemplate restTemplate;
     private final QAEntryRepository qaEntryRepository;
     private final UserInstanceUsageRepository userInstanceUsageRepository;
+    private final FileService fileService;
+    private final QuestionAssetRepository questionAssetRepository;
 
     @Value("${llm.qa.endpoint}")
     private String workflowUrl;
@@ -86,14 +92,35 @@ public class ChatbotServiceImpl implements ChatbotService {
 
         Conversation conversation = getOrCreateConversation(conversationId);
 
-        log.info("Calling workflow for question: {}", question);
+        /*
+         *
+         * Save question entry
+         *
+         */
+
+        QAEntry qaEntry = qaEntryRepository.save(
+                QAEntry.builder()
+                .conversation(conversation)
+                .questionText(question)
+                .build()
+        );
+
+        /*
+         *
+         * Upload files and get URLs
+         *
+         */
+        log.info("Uploading {} files for question", files != null ? files.size() : 0);
+        List<String> assetUrls = uploadFilesAndGetUrls(conversation.getId(), qaEntry, files);
+        log.info("Uploaded files. Asset URLs: {}", assetUrls);
 
         /*
          *
          * Call workflow
          *
          */
-        WorkflowResponse workflowResponse = callWorkflow(conversation, question);
+        log.info("Calling workflow for question: {}", question);
+        WorkflowResponse workflowResponse = callWorkflow(conversation, question, assetUrls);
 
         boolean hasAssistant = workflowResponse.getAssistant() != null;
         boolean hasGuardian  = workflowResponse.getGuardian() != null;
@@ -126,16 +153,10 @@ public class ChatbotServiceImpl implements ChatbotService {
 
         /*
          *
-         * Add entry to database
+         * Update QA entry with answer
          *
          */
-
-        QAEntry qaEntry = QAEntry.builder()
-                .conversation(conversation)
-                .questionText(question)
-                .answer(reply)
-                .build();
-
+        qaEntry.setAnswer(reply);
         qaEntryRepository.save(qaEntry);
 
         /*
@@ -158,6 +179,38 @@ public class ChatbotServiceImpl implements ChatbotService {
                 .build();
     }
 
+    private List<String> uploadFilesAndGetUrls(
+            String conversationId,
+            QAEntry qaEntry,
+            List<MultipartFile> files
+    ) {
+        if (files == null || files.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<ChatAssetUploadDTO> uploaded = fileService.uploadChatAssets(
+                conversationId,
+                files
+        );
+
+        List<QuestionAsset> assets = uploaded.stream()
+                .map(dto -> QuestionAsset.builder()
+                        .qaEntry(qaEntry)
+                        .type(dto.getType())
+                        .objectUrl(dto.getObjectUrl())
+                        .mimeType(dto.getMimeType())
+                        .orderIndex(dto.getOrderIndex())
+                        .build()
+                )
+                .toList();
+
+        questionAssetRepository.saveAll(assets);
+
+        return uploaded.stream()
+                .map(ChatAssetUploadDTO::getObjectUrl)
+                .toList();
+    }
+
 
     private Conversation getOrCreateConversation(String conversationId) {
         if (conversationId == null) {
@@ -172,7 +225,8 @@ public class ChatbotServiceImpl implements ChatbotService {
 
     private WorkflowResponse callWorkflow(
             Conversation conversation,
-            String question
+            String question,
+            List<String> assetUrls
     ) {
 
         List<WorkflowRequest.Query> queries = buildContext(conversation, question);
@@ -180,6 +234,7 @@ public class ChatbotServiceImpl implements ChatbotService {
         WorkflowRequest request = WorkflowRequest.builder()
                 .apiKey(apiKey)
                 .model(model)
+                .files(assetUrls)
                 .queries(queries)
                 .build();
 
@@ -206,7 +261,7 @@ public class ChatbotServiceImpl implements ChatbotService {
 
         } catch (HttpStatusCodeException ex) {
             log.error("LLM returned error: {}", ex.getResponseBodyAsString());
-            throw new RuntimeException("LLM error: " + ex.getStatusCode(), ex);
+            throw new RuntimeException("LLM error: " + ex.getResponseBodyAsString(), ex);
 
         } catch (ResourceAccessException ex) {
             throw new RuntimeException("LLM timeout or connection error", ex);
@@ -221,6 +276,12 @@ public class ChatbotServiceImpl implements ChatbotService {
                 conversation,
                 PageRequest.of(0, topK)
         );
+
+        // Remove the first entry if it's empty (the current question)
+        if (latestEntries.getFirst().getAnswer() == null ||
+                latestEntries.getFirst().getAnswer().isBlank()) {
+            latestEntries.removeFirst();
+        }
 
         Collections.reverse(latestEntries);
 

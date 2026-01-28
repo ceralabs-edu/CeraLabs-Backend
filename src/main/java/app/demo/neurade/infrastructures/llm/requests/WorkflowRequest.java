@@ -19,6 +19,9 @@ public class WorkflowRequest {
 
     private List<Query> queries;
 
+    @JsonProperty("image_urls")
+    private List<String> files;
+
     @Getter
     @Setter
     @AllArgsConstructor
