@@ -15,6 +15,8 @@ services:
       - ./ci/V1.0.0__init_schema.sql:/docker-entrypoint-initdb.d/V1.0.0__init_schema.sql
       - ./ci/V2.0.0__add_assignment_and_question.sql:/docker-entrypoint-initdb.d/V2.0.0__add_assignment_and_question.sql
       - ./ci/V2.0.1__add_answers_to_assignment_questions.sql:/docker-entrypoint-initdb.d/V2.0.1__add_answers_to_assignment_questions.sql
+      - ./ci/V2.0.2__add_index_for_assignment_in_question_table.sql:/docker-entrypoint-initdb.d/V2.0.2__add_index_for_assignment_in_question_table.sql
+      - ./ci/V2.0.3__add_student_answer_table.sql:/docker-entrypoint-initdb.d/V2.0.3__add_student_answer_table.sql
       - ./ci/V99.0.0__populate_data.sql:/docker-entrypoint-initdb.d/V99.0.0__populate_data.sql
     networks:
       - app-network

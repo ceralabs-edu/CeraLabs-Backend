@@ -1,15 +1,16 @@
 package app.demo.neurade.controllers;
 
+import app.demo.neurade.exception.UnauthorizedException;
+import app.demo.neurade.security.CustomUserDetails;
 import app.demo.neurade.services.AssignmentJudgeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,7 +23,30 @@ public class AssignmentController {
     public ResponseEntity<?> judgeAssignment(
             @RequestParam Map<String, MultipartFile> answers
     ) {
-        Map<String, String> res = assignmentJudgeService.checkAnswers(answers);
+        CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (userDetails == null) {
+            throw new UnauthorizedException("Unauthorized");
+        }
+        Map<String, String> res = assignmentJudgeService.checkAnswers(
+                userDetails.getUser(),
+                answers
+        );
         return ResponseEntity.ok(res);
+    }
+
+    @GetMapping("/{assignmentId}/judgement")
+    public ResponseEntity<?> getAssignmentJudgement(
+            @PathVariable String assignmentId
+    ) {
+        CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (userDetails == null) {
+            throw new UnauthorizedException("Unauthorized");
+        }
+
+        var result = assignmentJudgeService.getJudgementResults(
+                userDetails.getUser(),
+                UUID.fromString(assignmentId)
+        );
+        return ResponseEntity.ok(result);
     }
 }

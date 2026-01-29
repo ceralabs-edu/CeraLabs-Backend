@@ -9,4 +9,5 @@ import java.util.UUID;
 
 public interface AssignmentQuestionRepository extends JpaRepository<AssignmentQuestion, UUID> {
     List<AssignmentQuestion> findAllByAssignment(Assignment assignment);
+    List<AssignmentQuestion> findAllByAssignment_Id(UUID assignmentId);
 }

@@ -42,6 +42,8 @@ public class ClassServiceImpl implements ClassService {
                 .creator(creator)
                 .build();
 
+        Classroom classroom = classRepository.save(clazz);
+
         ClassParticipant creatorParticipant = ClassParticipant.builder()
                 .user(creator)
                 .clazz(clazz)
@@ -50,7 +52,7 @@ public class ClassServiceImpl implements ClassService {
 
         participantRepository.save(creatorParticipant);
 
-        return classRepository.save(clazz);
+        return classroom;
     }
 
     @Override

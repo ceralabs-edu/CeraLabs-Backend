@@ -11,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -23,9 +22,7 @@ public class AssignmentQuestionPersistenceServiceImpl implements AssignmentQuest
 
     @Override
     @Transactional
-    public Assignment saveAssignmentWithQuestions(UUID assignmentId, List<AssignmentQuestion> questions) {
-        Assignment assignment = assignmentRepository.findById(assignmentId)
-                        .orElseThrow(() -> new RuntimeException("Assignment with ID " + assignmentId + " not found"));
+    public Assignment saveAssignmentWithQuestions(Assignment assignment, List<AssignmentQuestion> questions) {
         questions.forEach(q -> q.setAssignment(assignment));
         assignmentQuestionRepository.saveAll(questions);
         log.info("Saved {} questions for assignment {}", questions.size(), assignment.getTitle());

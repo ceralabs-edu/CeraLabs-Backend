@@ -55,6 +55,9 @@ public class AssignmentServiceImpl implements AssignmentService {
 
     @Override
     public List<AssignmentQuestionDTO> createAndProcessPDF(UUID assignmentId, List<MultipartFile> files) {
+        Assignment assignment = assignmentRepository.findById(assignmentId)
+                .orElseThrow(() -> new RuntimeException("Assignment not found"));
+
         MultipartFile file = files.getFirst();
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("No file provided");
@@ -83,7 +86,7 @@ public class AssignmentServiceImpl implements AssignmentService {
         }
 
         assignmentQuestionPersistenceService.saveAssignmentWithQuestions(
-                assignmentId,
+                assignment,
                 result
         );
 
