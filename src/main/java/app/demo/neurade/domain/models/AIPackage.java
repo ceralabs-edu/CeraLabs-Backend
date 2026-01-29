@@ -59,4 +59,12 @@ public class AIPackage {
     public void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+    public String getRandomApiKey() {
+        if (apiKeys == null || apiKeys.isEmpty()) {
+            return null;
+        }
+        int randomIndex = (int) (Math.random() * apiKeys.size());
+        return apiKeys.get(randomIndex);
+    }
 }

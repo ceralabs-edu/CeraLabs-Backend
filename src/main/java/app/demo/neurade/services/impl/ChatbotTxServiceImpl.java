@@ -2,6 +2,7 @@ package app.demo.neurade.services.impl;
 
 import app.demo.neurade.domain.dtos.ChatAssetUploadDTO;
 import app.demo.neurade.domain.dtos.ChatPrepareDTO;
+import app.demo.neurade.domain.models.AIPackage;
 import app.demo.neurade.domain.models.User;
 import app.demo.neurade.domain.models.UserAIInstanceUsage;
 import app.demo.neurade.domain.models.chatbot.Conversation;
@@ -68,7 +69,23 @@ public class ChatbotTxServiceImpl implements ChatbotTxService {
         List<String> assetUrls = uploadFilesAndGetUrls(conversation.getId(), qaEntry, files);
         log.info("Uploaded files. Asset URLs: {}", assetUrls);
 
-        return new ChatPrepareDTO(conversation, qaEntry.getId(), assetUrls);
+        log.info("Selecting a random api key from AI package");
+
+        AIPackage aiPackage = usage.getInstance().getAiPackage();
+        String apiKey = aiPackage.getRandomApiKey();
+
+        if (apiKey == null) {
+            throw new RuntimeException("No API key available in the AI package");
+        }
+
+        log.info("Selected API key: {}", apiKey);
+
+        return ChatPrepareDTO.builder()
+                .conversation(conversation)
+                .qaEntryId(qaEntry.getId())
+                .assetUrls(assetUrls)
+                .apiKey(apiKey)
+                .build();
     }
 
     @Override
