@@ -5,6 +5,7 @@ import app.demo.neurade.domain.dtos.requests.AssignmentCreationRequest;
 import app.demo.neurade.domain.mappers.Mapper;
 import app.demo.neurade.domain.models.Classroom;
 import app.demo.neurade.domain.models.assignment.Assignment;
+import app.demo.neurade.domain.models.assignment.AssignmentQuestion;
 import app.demo.neurade.infrastructures.repositories.AssignmentRepository;
 import app.demo.neurade.infrastructures.repositories.ClassRepository;
 import app.demo.neurade.services.AssignmentService;
@@ -12,6 +13,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -38,5 +42,10 @@ public class AssignmentServiceImpl implements AssignmentService {
         assignment = assignmentRepository.save(assignment);
 
         return mapper.toDto(assignment);
+    }
+
+    @Override
+    public AssignmentQuestion createAndProcessQuestion(Long assignmentId, List<MultipartFile> files) {
+        return null;
     }
 }

@@ -1,4 +1,4 @@
-package app.demo.neurade.infrastructures.llm.responses;
+package app.demo.neurade.infrastructures.chatbot_llm.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
@@ -8,7 +8,7 @@ import java.util.List;
 
 @Getter
 @Setter
-public class ExtVerifyKeyResponse {
+public class VerifyKeyResponse {
     @JsonProperty("is_valid")
     private boolean isValid;
 

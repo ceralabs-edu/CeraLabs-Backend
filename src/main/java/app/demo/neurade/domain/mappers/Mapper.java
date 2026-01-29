@@ -2,7 +2,7 @@ package app.demo.neurade.domain.mappers;
 
 import app.demo.neurade.domain.dtos.*;
 import app.demo.neurade.domain.models.assignment.Assignment;
-import app.demo.neurade.infrastructures.llm.responses.ExtVerifyKeyResponse;
+import app.demo.neurade.infrastructures.chatbot_llm.responses.VerifyKeyResponse;
 import app.demo.neurade.domain.models.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -43,7 +43,7 @@ public class Mapper {
                 .build();
     }
 
-    public ValidateKeyDTO toDto(ExtVerifyKeyResponse response) {
+    public ValidateKeyDTO toDto(VerifyKeyResponse response) {
         return ValidateKeyDTO.builder()
                 .isValid(response.isValid())
                 .models(response.getModels())

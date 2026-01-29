@@ -1,6 +1,6 @@
 package app.demo.neurade.domain.dtos;
 
-import app.demo.neurade.infrastructures.llm.responses.WorkflowResponse;
+import app.demo.neurade.infrastructures.chatbot_llm.responses.WorkflowResponse;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;

@@ -2,8 +2,8 @@ package app.demo.neurade.services.impl;
 
 import app.demo.neurade.domain.dtos.AIPackageInstanceDTO;
 import app.demo.neurade.domain.dtos.ValidateKeyDTO;
-import app.demo.neurade.infrastructures.llm.requests.ExtVerifyKeyRequest;
-import app.demo.neurade.infrastructures.llm.responses.ExtVerifyKeyResponse;
+import app.demo.neurade.infrastructures.chatbot_llm.requests.VerifyKeyRequest;
+import app.demo.neurade.infrastructures.chatbot_llm.responses.VerifyKeyResponse;
 import app.demo.neurade.domain.dtos.requests.AIPackageCreationRequest;
 import app.demo.neurade.domain.dtos.requests.UserInstanceUsageCreationRequest;
 import app.demo.neurade.domain.mappers.Mapper;
@@ -169,14 +169,14 @@ public class AIPackageServiceImpl implements AIPackageService {
     public ValidateKeyDTO validateApiKey(String apiKey, String provider) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        ExtVerifyKeyRequest extRequest = ExtVerifyKeyRequest.builder()
+        VerifyKeyRequest extRequest = VerifyKeyRequest.builder()
                 .apiKey(apiKey)
                 .provider(provider)
                 .build();
 
         log.info("Sending API key validation request to external service: {}", verificationEndpoint);
 
-        ExtVerifyKeyResponse extResponse = restTemplate.postForObject(verificationEndpoint, extRequest, ExtVerifyKeyResponse.class);
+        VerifyKeyResponse extResponse = restTemplate.postForObject(verificationEndpoint, extRequest, VerifyKeyResponse.class);
         if (extResponse == null) {
             throw new RuntimeException("Failed to validate API key");
         }

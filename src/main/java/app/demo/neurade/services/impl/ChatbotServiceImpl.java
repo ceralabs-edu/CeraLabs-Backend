@@ -5,20 +5,17 @@ import app.demo.neurade.domain.dtos.ChatResponseDTO;
 import app.demo.neurade.domain.models.User;
 import app.demo.neurade.domain.models.chatbot.Conversation;
 import app.demo.neurade.domain.models.chatbot.QAEntry;
-import app.demo.neurade.infrastructures.llm.requests.WorkflowRequest;
-import app.demo.neurade.infrastructures.llm.responses.WorkflowResponse;
+import app.demo.neurade.infrastructures.chatbot_llm.ChatbotClient;
+import app.demo.neurade.infrastructures.chatbot_llm.requests.WorkflowRequest;
+import app.demo.neurade.infrastructures.chatbot_llm.responses.WorkflowResponse;
 import app.demo.neurade.infrastructures.repositories.QAEntryRepository;
 import app.demo.neurade.services.ChatbotService;
-import app.demo.neurade.services.ChatbotTxService;
+import app.demo.neurade.services.ChatbotPersistenceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpStatusCodeException;
-import org.springframework.web.client.ResourceAccessException;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
@@ -33,18 +30,10 @@ import java.util.stream.Stream;
 @Slf4j
 public class ChatbotServiceImpl implements ChatbotService {
 
-    private final RestTemplate restTemplate;
+    private final ChatbotClient chatbotClient;
     private final QAEntryRepository qaEntryRepository;
-    private final ChatbotTxService chatbotTxService;
+    private final ChatbotPersistenceService chatbotPersistenceService;
 
-    @Value("${llm.qa.endpoint}")
-    private String workflowUrl;
-
-    @Value("${llm.api-key}")
-    private String apiKey;
-
-    @Value("${llm.model}")
-    private String model;
 
     @Value("${llm.top-k}")
     private int topK;
@@ -60,7 +49,7 @@ public class ChatbotServiceImpl implements ChatbotService {
         /*
          * Phase 1: Validate and prepare (in transaction)
          */
-        ChatPrepareDTO prepareResult = chatbotTxService.prepareChat(user, instanceId, conversationId, question, files);
+        ChatPrepareDTO prepareResult = chatbotPersistenceService.prepareChat(user, instanceId, conversationId, question, files);
 
         /*
          * Phase 2: Call workflow (outside transaction - no DB lock held)
@@ -69,6 +58,7 @@ public class ChatbotServiceImpl implements ChatbotService {
         WorkflowResponse workflowResponse = callWorkflow(
                 prepareResult.conversation(),
                 question,
+                prepareResult.apiKey(),
                 prepareResult.assetUrls()
         );
 
@@ -102,7 +92,7 @@ public class ChatbotServiceImpl implements ChatbotService {
         long tokenUsed = extractTokenUsed(workflowResponse);
         log.info("LLM total token used (guardian + assistant): {}", tokenUsed);
 
-        chatbotTxService.finalizeChat(user, instanceId, prepareResult.qaEntryId(), reply, tokenUsed);
+        chatbotPersistenceService.finalizeChat(user, instanceId, prepareResult.qaEntryId(), reply, tokenUsed);
 
         return ChatResponseDTO.builder()
                 .conversationId(prepareResult.conversation().getId())
@@ -113,46 +103,11 @@ public class ChatbotServiceImpl implements ChatbotService {
     private WorkflowResponse callWorkflow(
             Conversation conversation,
             String question,
+            String apiKey,
             List<String> assetUrls
     ) {
-
         List<WorkflowRequest.Query> queries = buildContext(conversation, question);
-
-        WorkflowRequest request = WorkflowRequest.builder()
-                .apiKey(apiKey)
-                .model(model)
-                .files(assetUrls)
-                .queries(queries)
-                .build();
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        HttpEntity<WorkflowRequest> entity =
-                new HttpEntity<>(request, headers);
-
-        try {
-            ResponseEntity<WorkflowResponse> response =
-                    restTemplate.exchange(
-                            workflowUrl,
-                            HttpMethod.POST,
-                            entity,
-                            WorkflowResponse.class
-                    );
-
-            if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-                throw new IllegalStateException("Invalid response from LLM");
-            }
-
-            return response.getBody();
-
-        } catch (HttpStatusCodeException ex) {
-            log.error("LLM returned error: {}", ex.getResponseBodyAsString());
-            throw new RuntimeException("LLM error: " + ex.getResponseBodyAsString(), ex);
-
-        } catch (ResourceAccessException ex) {
-            throw new RuntimeException("LLM timeout or connection error", ex);
-        }
+        return chatbotClient.callWorkflow(queries, apiKey, assetUrls);
     }
 
     private List<WorkflowRequest.Query> buildContext(

@@ -145,9 +145,6 @@ public class MinioFileServiceImpl implements FileService {
             } catch (Exception e) {
                 throw new StorageException("Failed to create bucket: " + e.getMessage());
             }
-            System.out.println("Bucket created: " + bucketName);
-        } else {
-            System.out.println("Bucket already exists: " + bucketName);
         }
     }
 

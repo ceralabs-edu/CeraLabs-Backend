@@ -11,7 +11,7 @@ import app.demo.neurade.domain.models.chatbot.QAEntry;
 import app.demo.neurade.domain.models.chatbot.QuestionAsset;
 import app.demo.neurade.exception.UnauthorizedException;
 import app.demo.neurade.infrastructures.repositories.*;
-import app.demo.neurade.services.ChatbotTxService;
+import app.demo.neurade.services.ChatbotPersistenceService;
 import app.demo.neurade.services.FileService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -27,7 +27,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class ChatbotTxServiceImpl implements ChatbotTxService {
+public class ChatbotPersistenceServiceImpl implements ChatbotPersistenceService {
 
     private final UserInstanceUsageRepository userInstanceUsageRepository;
     private final QAEntryRepository qaEntryRepository;
