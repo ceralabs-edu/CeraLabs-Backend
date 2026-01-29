@@ -12,7 +12,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,6 +29,9 @@ public class MinioFileServiceImpl implements FileService {
 
     @Value("${minio.bucket.chat}")
     private String chatBucket;
+
+    @Value("${minio.bucket.assignment}")
+    private String assignmentBucket;
 
     @Value("${minio.url}")
     private String minioUrl;
@@ -70,6 +75,61 @@ public class MinioFileServiceImpl implements FileService {
         }
 
         return results;
+    }
+
+    @Override
+    public String uploadBase64Image(String base64DataUrl, String objectKeyPrefix) {
+        // Extract base64 data from data URL
+        String base64 = base64DataUrl.substring(base64DataUrl.indexOf(",") + 1);
+        byte[] bytes = Base64.getDecoder().decode(base64);
+
+        // Determine content type from data URL
+        String contentType = "image/png"; // default
+        if (base64DataUrl.startsWith("data:")) {
+            int commaIndex = base64DataUrl.indexOf(",");
+            String mimeType = base64DataUrl.substring(5, commaIndex);
+            if (mimeType.contains(";")) {
+                mimeType = mimeType.substring(0, mimeType.indexOf(";"));
+            }
+            if (!mimeType.isEmpty()) {
+                contentType = mimeType;
+            }
+        }
+
+        // Determine file extension
+        String extension = "png";
+        if (contentType.contains("jpeg") || contentType.contains("jpg")) {
+            extension = "jpg";
+        } else if (contentType.contains("gif")) {
+            extension = "gif";
+        } else if (contentType.contains("webp")) {
+            extension = "webp";
+        }
+
+        // Generate unique object key
+        String objectKey = String.format(
+                "%s/%s.%s",
+                objectKeyPrefix,
+                UUID.randomUUID(),
+                extension
+        );
+
+        // Upload to MinIO using existing infrastructure
+        createBucketIfNotExists(assignmentBucket);
+        try {
+            minioClient.putObject(
+                    PutObjectArgs.builder()
+                            .bucket(assignmentBucket)
+                            .object(objectKey)
+                            .stream(new ByteArrayInputStream(bytes), bytes.length, -1)
+                            .contentType(contentType)
+                            .build()
+            );
+        } catch (Exception e) {
+            throw new StorageException("Failed to upload base64 image to MinIO: " + e.getMessage());
+        }
+
+        return buildObjectUrl(assignmentBucket, objectKey);
     }
 
     private String buildChatObjectKey(
@@ -130,7 +190,7 @@ public class MinioFileServiceImpl implements FileService {
                             .bucket(bucketName)
                             .build()
             );
-            ensurePublicReadPolicy(bucketName);
+
         } catch (Exception e) {
             throw new StorageException("Failed to check if bucket exists: " + e.getMessage());
         }
@@ -146,6 +206,7 @@ public class MinioFileServiceImpl implements FileService {
                 throw new StorageException("Failed to create bucket: " + e.getMessage());
             }
         }
+        ensurePublicReadPolicy(bucketName);
     }
 
     private void ensurePublicReadPolicy(String bucketName) {

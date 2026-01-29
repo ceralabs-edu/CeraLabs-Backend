@@ -11,4 +11,5 @@ public interface FileService {
             String conversationId,
             List<MultipartFile> files
     );
+    String uploadBase64Image(String base64DataUrl, String objectKeyPrefix);
 }

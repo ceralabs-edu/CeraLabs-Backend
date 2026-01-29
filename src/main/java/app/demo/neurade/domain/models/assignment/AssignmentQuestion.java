@@ -71,16 +71,4 @@ public class AssignmentQuestion {
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
     }
-
-    public QuestionType detectType(String correctAnswer) {
-        if (correctAnswer == null || correctAnswer.isEmpty()) {
-            return QuestionType.SHORT_ANSWER;
-        }
-
-        return switch (correctAnswer.trim()) {
-            case "A", "B", "C", "D" -> QuestionType.MCQ;
-            case "Đ", "S" -> QuestionType.TF;
-            default -> QuestionType.SHORT_ANSWER;
-        };
-    }
 }

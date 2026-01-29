@@ -1,6 +1,7 @@
 package app.demo.neurade.controllers;
 
 import app.demo.neurade.domain.dtos.AssignmentDTO;
+import app.demo.neurade.domain.dtos.AssignmentQuestionDTO;
 import app.demo.neurade.domain.dtos.ClassDTO;
 import app.demo.neurade.domain.dtos.requests.AssignmentCreationRequest;
 import app.demo.neurade.domain.dtos.requests.ClassCreationRequest;
@@ -26,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/class")
@@ -133,12 +135,13 @@ public class ClassController {
 
     @PostMapping("/{classId}/assignment/{assignmentId}/question")
     @PreAuthorize("hasAnyRole('ADMIN', 'ORGANIZATION', 'TEACHER')")
-    public ResponseEntity<?> addQuestionToAssignment(
+    public ResponseEntity<?> addFileToAssignment(
             @PathVariable("classId") String classId,
-            @PathVariable("assignmentId") String assignmentId,
+            @PathVariable("assignmentId") UUID assignmentId,
             @RequestPart("files") List<MultipartFile> files
     ) {
-        return ResponseEntity.ok().build();
+        List<AssignmentQuestionDTO> dtos = assignmentService.createAndProcessPDF(assignmentId, files);
+        return ResponseEntity.ok(dtos);
     }
 
     @GetMapping("/{classId}")

@@ -25,6 +25,7 @@ minio:
   bucket:
     pfp: ${MINIO_BUCKET_PFP:neurade-pfp}
     chat: ${MINIO_BUCKET_CHAT:neurade-chat}
+    assignment: ${MINIO_BUCKET_ASSIGNMENT:neurade-assignment}
 
 llm:
   provider: ${LLM_PROVIDER:gemini}
@@ -35,6 +36,8 @@ llm:
     endpoint: ${LLM_VALIDATE_ENDPOINT}
   qa:
     endpoint: ${LLM_QA_ENDPOINT}
+  assignment-ocr:
+    endpoint: ${LLM_ASSIGNMENT_OCR_ENDPOINT}
 
 application:
   security:
