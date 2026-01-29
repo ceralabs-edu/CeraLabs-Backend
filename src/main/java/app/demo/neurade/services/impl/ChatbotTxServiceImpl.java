@@ -3,16 +3,14 @@ package app.demo.neurade.services.impl;
 import app.demo.neurade.domain.dtos.ChatAssetUploadDTO;
 import app.demo.neurade.domain.dtos.ChatPrepareDTO;
 import app.demo.neurade.domain.models.AIPackage;
+import app.demo.neurade.domain.models.AIPackageInstance;
 import app.demo.neurade.domain.models.User;
 import app.demo.neurade.domain.models.UserAIInstanceUsage;
 import app.demo.neurade.domain.models.chatbot.Conversation;
 import app.demo.neurade.domain.models.chatbot.QAEntry;
 import app.demo.neurade.domain.models.chatbot.QuestionAsset;
 import app.demo.neurade.exception.UnauthorizedException;
-import app.demo.neurade.infrastructures.repositories.ConversationRepository;
-import app.demo.neurade.infrastructures.repositories.QAEntryRepository;
-import app.demo.neurade.infrastructures.repositories.QuestionAssetRepository;
-import app.demo.neurade.infrastructures.repositories.UserInstanceUsageRepository;
+import app.demo.neurade.infrastructures.repositories.*;
 import app.demo.neurade.services.ChatbotTxService;
 import app.demo.neurade.services.FileService;
 import jakarta.persistence.EntityNotFoundException;
@@ -36,6 +34,7 @@ public class ChatbotTxServiceImpl implements ChatbotTxService {
     private final ConversationRepository conversationRepository;
     private final FileService fileService;
     private final QuestionAssetRepository questionAssetRepository;
+    private final AIPackageInstanceRepository aIPackageInstanceRepository;
 
     @Override
     @Transactional
@@ -100,11 +99,18 @@ public class ChatbotTxServiceImpl implements ChatbotTxService {
         qaEntry.setAnswer(reply);
         qaEntryRepository.save(qaEntry);
 
+        AIPackageInstance instance = aIPackageInstanceRepository
+                .findByIdForUpdate(instanceId)
+                .orElseThrow(() -> new EntityNotFoundException("AI Package Instance not found"));
+        instance.deductTokens(tokenUsed);
+        aIPackageInstanceRepository.save(instance);
+
         UserAIInstanceUsage usage = userInstanceUsageRepository
                 .findForUpdate(user, instanceId)
                 .orElseThrow(() ->
                         new UnauthorizedException("No usage record found for user and instance")
                 );
+
         usage.useToken(tokenUsed);
         userInstanceUsageRepository.save(usage);
     }

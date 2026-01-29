@@ -2,6 +2,7 @@ package app.demo.neurade.domain.models;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Table(name = "user_ai_instance_usages")
+@Slf4j
 public class UserAIInstanceUsage {
 
     @Id
@@ -77,28 +79,39 @@ public class UserAIInstanceUsage {
         }
     }
 
-    public boolean isWithinTotalLimit() {
+    private boolean isWithinTotalLimit() {
         return tokenUsed < limitToken;
     }
 
-    public boolean isWithinRateLimit() {
+    private boolean isWithinRateLimit() {
         if (rateLimitTokenLimit == null) {
             return true; // No rate limit set
         }
         return rateLimitTokenCount < rateLimitTokenLimit;
     }
 
+    private boolean isInstanceRanOutOfToken() {
+        return instance.getRemainingToken() <= 0;
+    }
+
     public boolean canUseThisPackage() {
-        return isWithinTotalLimit() && isWithinRateLimit();
+        return isWithinTotalLimit() && isWithinRateLimit() && !isInstanceRanOutOfToken();
     }
 
     public void useToken(long num) {
         if (num <= 0) {
             throw new IllegalArgumentException("token number must be greater than zero");
         }
+        log.info("Using {} tokens for user {} on instance {}", num, user.getId(), instance.getId());
         this.tokenUsed += num;
         if (rateLimitTokenLimit != null) {
             this.rateLimitTokenCount += num;
         }
+        log.info("{} / {} tokens used (rate limit: {} / {})",
+                this.tokenUsed,
+                this.limitToken,
+                this.rateLimitTokenCount,
+                this.rateLimitTokenLimit
+        );
     }
 }

@@ -2,6 +2,7 @@ package app.demo.neurade.domain.models;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -13,6 +14,7 @@ import java.util.UUID;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Table(name = "ai_packages_instances")
+@Slf4j
 public class AIPackageInstance {
 
     @Id
@@ -50,4 +52,14 @@ public class AIPackageInstance {
 
     @Column(name = "expiry_date", nullable = false)
     private LocalDateTime expiryDate;
+
+    public void deductTokens(Long tokens) {
+        if (tokens <= 0) {
+            throw new IllegalArgumentException("Tokens to deduct must be positive");
+        }
+        log.info("Deducting {} tokens from AIPackageInstance {}", tokens, this.id);
+        log.info("Before deduction, remaining tokens: {}", this.remainingToken);
+        this.remainingToken -= tokens;
+        log.info("After deduction, remaining tokens: {}", this.remainingToken);
+    }
 }
