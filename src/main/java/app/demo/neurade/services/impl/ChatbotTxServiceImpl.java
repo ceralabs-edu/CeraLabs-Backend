@@ -78,8 +78,6 @@ public class ChatbotTxServiceImpl implements ChatbotTxService {
             throw new RuntimeException("No API key available in the AI package");
         }
 
-        log.info("Selected API key: {}", apiKey);
-
         return ChatPrepareDTO.builder()
                 .conversation(conversation)
                 .qaEntryId(qaEntry.getId())

@@ -2,6 +2,7 @@ package app.demo.neurade.domain.models;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Table(name = "ai_packages")
+@Slf4j
 public class AIPackage {
 
     @Id
@@ -65,6 +67,7 @@ public class AIPackage {
             return null;
         }
         int randomIndex = (int) (Math.random() * apiKeys.size());
+        log.info("Selected random API key at index {} for AI Package {}", randomIndex, this.name);
         return apiKeys.get(randomIndex);
     }
 }
