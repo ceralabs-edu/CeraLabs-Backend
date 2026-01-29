@@ -2,15 +2,17 @@ package app.demo.neurade.services.impl;
 
 import app.demo.neurade.domain.dtos.AIPackageInstanceDTO;
 import app.demo.neurade.domain.dtos.ValidateKeyDTO;
-import app.demo.neurade.domain.dtos.externals.requests.ExtVerifyKeyRequest;
-import app.demo.neurade.domain.dtos.externals.responses.ExtVerifyKeyResponse;
+import app.demo.neurade.infrastructures.llm.requests.ExtVerifyKeyRequest;
+import app.demo.neurade.infrastructures.llm.responses.ExtVerifyKeyResponse;
 import app.demo.neurade.domain.dtos.requests.AIPackageCreationRequest;
+import app.demo.neurade.domain.dtos.requests.UserInstanceUsageCreationRequest;
 import app.demo.neurade.domain.mappers.Mapper;
 import app.demo.neurade.domain.models.*;
-import app.demo.neurade.repositories.AIPackageInstanceRepository;
-import app.demo.neurade.repositories.AIPackageRepository;
-import app.demo.neurade.repositories.ClassRepository;
-import app.demo.neurade.repositories.PeopleManagementRepository;
+import app.demo.neurade.infrastructures.repositories.AIPackageInstanceRepository;
+import app.demo.neurade.infrastructures.repositories.AIPackageRepository;
+import app.demo.neurade.infrastructures.repositories.ClassRepository;
+import app.demo.neurade.infrastructures.repositories.PeopleManagementRepository;
+import app.demo.neurade.services.AIPackageInstanceService;
 import app.demo.neurade.services.AIPackageService;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
@@ -23,7 +25,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -37,8 +38,9 @@ public class AIPackageServiceImpl implements AIPackageService {
     private final RestTemplate restTemplate;
     private final Mapper mapper;
     private final EntityManager entityManager;
+    private final AIPackageInstanceService aIPackageInstanceService;
 
-    @Value("${llm.validate-endpoint}")
+    @Value("${llm.validate.endpoint}")
     private String verificationEndpoint;
 
     @Override
@@ -61,6 +63,54 @@ public class AIPackageServiceImpl implements AIPackageService {
     @Override
     @Transactional
     public AIPackageInstanceDTO purchasePackage(User buyer, Long classId, Integer aiPackageId) {
+        AIPackageInstanceDTO dto = (classId == null) ?
+                purchasePackageForUser(buyer, aiPackageId) :
+                purchasePackageForClass(buyer, classId, aiPackageId);
+
+        aIPackageInstanceService.createUsageRecord(
+                UserInstanceUsageCreationRequest.builder()
+                        .instanceId(dto.getInstanceId())
+                        .userId(buyer.getId())
+                        .build()
+        );
+
+        return dto;
+    }
+
+    public AIPackageInstanceDTO purchasePackageForUser(User buyer, Integer aiPackageId) {
+        AIPackage aiPackage = aiPackageRepository.findById(aiPackageId)
+                .orElseThrow(() -> new RuntimeException("AI Package not found with id: " + aiPackageId));
+
+        log.info("Purchasing AI Package: {} for User: {}", aiPackage.getName(), buyer.getEmail());
+
+        int existed = aiPackageInstanceRepository.deletePersonalInstance(buyer.getId());
+
+        log.info("User {} had {} existing AI Package instances removed", buyer.getEmail(), existed);
+
+        entityManager.flush();
+
+        log.info("EntityManager flushed to ensure deletion is executed before creating new instance");
+
+        AIPackageInstance aiPackageInstance = AIPackageInstance.builder()
+                .aiPackage(aiPackage)
+                .purchaseDate(LocalDateTime.now())
+                .expiryDate(LocalDateTime.now().plusDays(aiPackage.getDurationInDays()))
+                .remainingToken(aiPackage.getTotalToken())
+                .buyer(buyer)
+                .build();
+
+        aiPackageInstance = aiPackageInstanceRepository.save(aiPackageInstance);
+
+        log.info("AI Package Instance created with ID: {}", aiPackageInstance.getId());
+
+        return mapper.toDto(
+                aiPackageInstance,
+                aiPackage
+        );
+    }
+
+
+    public AIPackageInstanceDTO purchasePackageForClass(User buyer, Long classId, Integer aiPackageId) {
         Classroom classroom = classroomRepository.findById(classId)
                 .orElseThrow(() -> new RuntimeException("Classroom not found with id: " + classId));
 
@@ -88,7 +138,7 @@ public class AIPackageServiceImpl implements AIPackageService {
 
         log.info("Purchasing AI Package: {} for Class: {} by User: {}", aiPackage.getName(), classId, buyer.getEmail());
 
-        int existed = aiPackageInstanceRepository.deleteAIPackageInstanceByClassRoomId(classroom.getId());
+        int existed = aiPackageInstanceRepository.deleteClassroomInstance(classroom.getId());
 
         log.info("Class {} had {} existing AI Package instances removed", classId, existed);
 
@@ -133,17 +183,6 @@ public class AIPackageServiceImpl implements AIPackageService {
 
         log.info("Received API key validation response: {}", extResponse);
         return mapper.toDto(extResponse);
-    }
-
-    @Override
-    @Transactional
-    public AIPackageInstanceDTO getInstanceById(UUID instanceId) {
-        AIPackageInstance instance = aiPackageInstanceRepository.findById(instanceId)
-                .orElseThrow(() -> new RuntimeException("AI Package Instance not found with id: " + instanceId));
-
-        AIPackage aiPackage = instance.getAiPackage();
-
-        return mapper.toDto(instance, aiPackage);
     }
 
     @Override

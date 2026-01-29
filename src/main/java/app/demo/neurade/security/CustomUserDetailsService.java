@@ -1,7 +1,7 @@
 package app.demo.neurade.security;
 
 import app.demo.neurade.domain.models.User;
-import app.demo.neurade.repositories.UserRepository;
+import app.demo.neurade.infrastructures.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

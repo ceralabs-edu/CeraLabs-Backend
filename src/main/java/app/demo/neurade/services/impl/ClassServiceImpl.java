@@ -3,7 +3,7 @@ package app.demo.neurade.services.impl;
 import app.demo.neurade.domain.dtos.requests.ClassCreationRequest;
 import app.demo.neurade.domain.models.Classroom;
 import app.demo.neurade.domain.models.User;
-import app.demo.neurade.repositories.ClassRepository;
+import app.demo.neurade.infrastructures.repositories.ClassRepository;
 import app.demo.neurade.services.ClassService;
 import app.demo.neurade.services.UserService;
 import jakarta.transaction.Transactional;

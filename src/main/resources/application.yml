@@ -1,35 +1,42 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/neurade
-    username: postgres
-    password: password
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
+
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: false
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    show-sql: ${JPA_SHOW_SQL:false}
     properties:
       hibernate:
-        format_sql: true
+        format_sql: ${JPA_FORMAT_SQL:true}
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 
 minio:
-  url: http://localhost:9000
-  access-key: minioadmin
-  secret-key: minioadmin
+  url: http://${MINIO_HOST}:${MINIO_PORT}
+  access-key: ${MINIO_ACCESS}
+  secret-key: ${MINIO_SECRET}
   bucket:
-    pfp: neurade-pfp
-
-gemini:
-  api-key: ${GEMINI_API_KEY}
+    pfp: ${MINIO_BUCKET_PFP:neurade-pfp}
+    chat: ${MINIO_BUCKET_CHAT:neurade-chat}
 
 llm:
-  validate-endpoint: ${LLM_VALIDATE_ENDPOINT}
+  provider: ${LLM_PROVIDER:gemini}
+  api-key: ${LLM_API_KEY}
+  model: ${LLM_MODEL:gemini-2.5-flash}
+  top-k: ${LLM_TOP_K:5}
+  validate:
+    endpoint: ${LLM_VALIDATE_ENDPOINT}
+  qa:
+    endpoint: ${LLM_QA_ENDPOINT}
+
 application:
   security:
     jwt:
-      secret-key: a2fc2b980de9ebd2351e837fb53057d389058796fcc11a01de41fcba542328bc
-      expiration: 86400000 # 1 day in milliseconds
+      secret-key: ${JWT_SECRET_KEY}
+      expiration: ${JWT_EXPIRATION:86400000} # 1 day
       refresh-token:
-        expiration:  604800000 # 7 days in milliseconds
+        expiration: ${JWT_REFRESH_EXPIRATION:604800000} # 7 days
