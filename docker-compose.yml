@@ -12,7 +12,8 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./ci/data.csv:/docker-entrypoint-initdb.d/data.csv
-      - ./ci/import_address.sql:/docker-entrypoint-initdb.d/import_address.sql
+      - ./ci/V1__init_schema.sql:/docker-entrypoint-initdb.d/V1__init_schema.sql
+      - ./ci/V2__populate_data.sql:/docker-entrypoint-initdb.d/V2__populate_data.sql
     networks:
       - app-network
 
@@ -34,6 +35,7 @@ services:
 
   app:
     build: .
+#    image: bananaonthetree/backend-neurade:0.0.1
     container_name: neurade-app
     restart: always
     ports:
