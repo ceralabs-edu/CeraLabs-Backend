@@ -8,6 +8,8 @@ import app.demo.neurade.domain.models.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 @RequiredArgsConstructor
 public class Mapper {
@@ -92,14 +94,35 @@ public class Mapper {
                 .build();
     }
 
-    public AssignmentQuestionDTO toDto(AssignmentQuestion assignmentQuestion) {
-        return AssignmentQuestionDTO.builder()
+    public AssignmentDTO toDto(Assignment assignment, List<AssignmentQuestion> questions, boolean showCorrectAnswers) {
+        var builder = AssignmentDTO.builder()
+                .id(assignment.getId())
+                .classId(assignment.getClassroom().getId())
+                .title(assignment.getTitle())
+                .description(assignment.getDescription())
+                .deadline(assignment.getDeadline())
+                .questions(
+                        questions.stream()
+                                .map(q -> toDto(q, showCorrectAnswers))
+                                .toList()
+                );
+
+        return builder.build();
+    }
+
+    public AssignmentQuestionDTO toDto(AssignmentQuestion assignmentQuestion, boolean showCorrectAnswer) {
+        var builder = AssignmentQuestionDTO.builder()
+                .id(assignmentQuestion.getId())
                 .questionKey(assignmentQuestion.getQuestionKey())
                 .questionType(assignmentQuestion.getQuestionType())
                 .questionUrl(assignmentQuestion.getQuestionImageUrl())
                 .optionUrls(assignmentQuestion.getAnswerImageUrls())
-                .answer(assignmentQuestion.getCorrectAnswer())
-                .explainUrl(assignmentQuestion.getExplainImageUrl())
-                .build();
+                .explainUrl(assignmentQuestion.getExplainImageUrl());
+
+        if (showCorrectAnswer) {
+            builder.answer(assignmentQuestion.getCorrectAnswer());
+        }
+
+        return builder.build();
     }
 }

@@ -88,7 +88,7 @@ public class AssignmentServiceImpl implements AssignmentService {
         );
 
         return result.stream()
-                .map(mapper::toDto)
+                .map(aq -> mapper.toDto(aq, true))
                 .toList();
     }
 

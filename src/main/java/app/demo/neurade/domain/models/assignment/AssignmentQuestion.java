@@ -8,12 +8,17 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "assignment_questions")
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
+@Table(
+        name = "assignment_questions",
+        indexes = {
+                @Index(name = "idx_assignment_question_assignment_id", columnList = "assignment_id")
+        }
+)
 public class AssignmentQuestion {
 
     @Id

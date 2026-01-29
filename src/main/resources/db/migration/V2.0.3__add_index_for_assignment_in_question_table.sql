@@ -1,0 +1,1 @@
+CREATE INDEX idx_assignment_question_assignment_id ON assignment_questions (assignment_id);

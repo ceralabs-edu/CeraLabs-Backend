@@ -144,6 +144,17 @@ public class ClassController {
         return ResponseEntity.ok(dtos);
     }
 
+    @GetMapping("/{classId}/assignment/{assignmentId}")
+    public ResponseEntity<?> getAssignment(
+            @PathVariable("classId") String classId,
+            @PathVariable("assignmentId") UUID assignmentId
+    ) {
+        AssignmentDTO dto = classService.getAssignment(
+                assignmentId
+        );
+        return ResponseEntity.ok(dto);
+    }
+
     @GetMapping("/{classId}")
     public ResponseEntity<?> getClass(
             @PathVariable("classId") String classId
