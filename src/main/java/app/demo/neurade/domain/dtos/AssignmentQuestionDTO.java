@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @Builder
@@ -17,6 +19,8 @@ public class AssignmentQuestionDTO {
     private QuestionType questionType;
 
     private String questionUrl;
+
+    private List<String> optionUrls;
 
     private String answer;
 

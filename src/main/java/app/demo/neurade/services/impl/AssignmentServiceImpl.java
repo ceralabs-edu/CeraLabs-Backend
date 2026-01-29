@@ -21,10 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -71,56 +68,18 @@ public class AssignmentServiceImpl implements AssignmentService {
 
         for (var entry : response.getQuestions().entrySet()) {
             String key = entry.getKey();
-
             List<ExtractResponse.QuestionRegionDTO> regions = entry.getValue();
-            if (regions == null || regions.isEmpty()) {
-                log.warn("Question {} has no regions, skipping", key);
+
+            if (!isValidQuestionRegion(key, regions)) {
                 continue;
             }
 
             ExtractResponse.QuestionRegionDTO region = regions.getFirst();
 
-            List<Object> coor = region.getCoor();
-            if (coor == null || coor.size() < 5) {
-                log.warn("Invalid coor for question {}, skipping", key);
-                continue;
+            AssignmentQuestion question = processQuestionEntry(key, region, response);
+            if (question != null) {
+                result.add(question);
             }
-
-            String questionBase64 = (String) coor.get(4);
-
-            String questionImageUrl = uploadBase64ToMinio(questionBase64);
-
-            String correctAnswer = null;
-            if (response.getCorrectOptions() != null) {
-                correctAnswer = response.getCorrectOptions().get(key);
-            }
-            correctAnswer = normalizeAnswer(correctAnswer);
-
-            String explainImageUrl = null;
-            if (response.getExplains() != null
-                    && response.getExplains().containsKey(key)) {
-
-                List<List<Object>> explainRegions =
-                        response.getExplains().get(key);
-
-                if (explainRegions != null && !explainRegions.isEmpty()) {
-                    List<Object> explainCoor = explainRegions.getFirst();
-                    if (explainCoor.size() >= 5) {
-                        String explainBase64 = (String) explainCoor.get(4);
-                        explainImageUrl = uploadBase64ToMinio(explainBase64);
-                    }
-                }
-            }
-
-            AssignmentQuestion question = toEntity(
-                    key,
-                    region,
-                    correctAnswer,
-                    questionImageUrl,
-                    explainImageUrl
-            );
-
-            result.add(question);
         }
 
         assignmentQuestionPersistenceService.saveAssignmentWithQuestions(
@@ -136,6 +95,7 @@ public class AssignmentServiceImpl implements AssignmentService {
     private AssignmentQuestion toEntity(
             String key,
             ExtractResponse.QuestionRegionDTO region,
+            List<String> optionImageUrls,
             String correctAnswer,
             String questionImageUrl,
             String explainImageUrl
@@ -147,6 +107,7 @@ public class AssignmentServiceImpl implements AssignmentService {
                 .questionKey(key)
                 .questionType(type)
                 .questionImageUrl(questionImageUrl)
+                .answerImageUrls(optionImageUrls)
                 .correctAnswer(correctAnswer)
                 .explainImageUrl(explainImageUrl)
                 .page(region.getPage())
@@ -172,5 +133,97 @@ public class AssignmentServiceImpl implements AssignmentService {
 
     private String uploadBase64ToMinio(String dataUrl) {
         return fileService.uploadBase64Image(dataUrl, "questions");
+    }
+
+    private boolean isValidQuestionRegion(String key, List<ExtractResponse.QuestionRegionDTO> regions) {
+        if (regions == null || regions.isEmpty()) {
+            log.warn("Question {} has no regions, skipping", key);
+            return false;
+        }
+        return true;
+    }
+
+    private AssignmentQuestion processQuestionEntry(
+            String key,
+            ExtractResponse.QuestionRegionDTO region,
+            ExtractResponse response
+    ) {
+        String questionImageUrl = extractQuestionImage(key, region);
+        if (questionImageUrl == null) {
+            return null;
+        }
+
+        List<String> optionImageUrls = getOptionImages(key, response);
+        String correctAnswer = getCorrectAnswer(key, response);
+        String explainImageUrl = extractExplainImage(key, response);
+
+        return toEntity(
+                key,
+                region,
+                optionImageUrls,
+                correctAnswer,
+                questionImageUrl,
+                explainImageUrl
+        );
+    }
+
+    private String extractQuestionImage(String key, ExtractResponse.QuestionRegionDTO region) {
+        List<Object> coor = region.getCoor();
+        if (coor == null || coor.size() < 5) {
+            log.warn("Invalid coor for question {}, skipping", key);
+            return null;
+        }
+
+        String questionBase64 = (String) coor.get(4);
+        return uploadBase64ToMinio(questionBase64);
+    }
+
+    private List<String> getOptionImages(String key, ExtractResponse response) {
+        if (response.getOptions() == null || !response.getOptions().containsKey(key)) {
+            return null;
+        }
+        Map<String, ExtractResponse.AnswerRegionDTO> map = response.getOptions();
+        ExtractResponse.AnswerRegionDTO answerRegion = map.get(key);
+        if (answerRegion == null) {
+            return null;
+        }
+        List<List<Object>> optionRegions = answerRegion.getOptions();
+        List<String> optionImageUrls = new ArrayList<>();
+        for (List<Object> optionCoor : optionRegions) {
+            if (optionCoor.size() < 11) {
+                continue;
+            }
+            String optionBase64 = (String) optionCoor.get(9);
+            String optionImageUrl = uploadBase64ToMinio(optionBase64);
+            optionImageUrls.add(optionImageUrl);
+        }
+        return optionImageUrls;
+    }
+
+    private String getCorrectAnswer(String key, ExtractResponse response) {
+        String correctAnswer = null;
+        if (response.getCorrectOptions() != null) {
+            correctAnswer = response.getCorrectOptions().get(key);
+        }
+        return normalizeAnswer(correctAnswer);
+    }
+
+    private String extractExplainImage(String key, ExtractResponse response) {
+        if (response.getExplains() == null || !response.getExplains().containsKey(key)) {
+            return null;
+        }
+
+        List<List<Object>> explainRegions = response.getExplains().get(key);
+        if (explainRegions == null || explainRegions.isEmpty()) {
+            return null;
+        }
+
+        List<Object> explainCoor = explainRegions.getFirst();
+        if (explainCoor.size() < 5) {
+            return null;
+        }
+
+        String explainBase64 = (String) explainCoor.get(4);
+        return uploadBase64ToMinio(explainBase64);
     }
 }

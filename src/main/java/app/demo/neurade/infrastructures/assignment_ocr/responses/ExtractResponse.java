@@ -35,6 +35,13 @@ public class ExtractResponse {
      */
     private Map<String, List<List<Object>>> explains;
 
+    /**
+     * key: question_1
+     * value: options: List<region>
+     */
+    @JsonProperty("answers")
+    private Map<String, AnswerRegionDTO> options;
+
     // ================= INNER DTO =================
 
     @Getter
@@ -48,5 +55,13 @@ public class ExtractResponse {
          * [x1, y1, x2, y2, base64]
          */
         private List<Object> coor;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AnswerRegionDTO {
+        private List<List<Object>> options;
     }
 }

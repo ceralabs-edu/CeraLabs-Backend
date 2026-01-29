@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -37,6 +38,12 @@ public class AssignmentQuestion {
      */
     @Column(name = "question_image_url", nullable = false, columnDefinition = "TEXT")
     private String questionImageUrl;
+
+    /**
+     * URL ảnh các phương án trả lời (MinIO)
+     */
+    @Column(name = "answer_image_urls")
+    private List<String> answerImageUrls;
 
     /**
      * A / B / C / D / Đ / S / null

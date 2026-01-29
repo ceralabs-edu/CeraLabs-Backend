@@ -97,6 +97,7 @@ public class Mapper {
                 .questionKey(assignmentQuestion.getQuestionKey())
                 .questionType(assignmentQuestion.getQuestionType())
                 .questionUrl(assignmentQuestion.getQuestionImageUrl())
+                .optionUrls(assignmentQuestion.getAnswerImageUrls())
                 .answer(assignmentQuestion.getCorrectAnswer())
                 .explainUrl(assignmentQuestion.getExplainImageUrl())
                 .build();
