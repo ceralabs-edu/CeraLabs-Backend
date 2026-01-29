@@ -12,7 +12,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -65,7 +68,6 @@ public class MinioFileServiceImpl implements FileService {
                     .type(resolveAssetType(file.getContentType()))
                     .objectUrl(
                             buildObjectUrl(chatBucket, objectKey)
-//                            presignGetObject(chatBucket, objectKey, 3600)
                     )
                     .mimeType(file.getContentType())
                     .orderIndex(order)
@@ -252,6 +254,71 @@ public class MinioFileServiceImpl implements FileService {
             );
         } catch (Exception e) {
             throw new StorageException("Failed to generate presigned URL: " + e.getMessage());
+        }
+    }
+
+    private String buildAssignmentAnswerObjectKey(
+            UUID questionId,
+            String originalFilename
+    ) {
+        return String.format(
+                "assignment/%s/%s-%s",
+                questionId,
+                UUID.randomUUID(),
+                originalFilename
+        );
+    }
+
+    @Override
+    public List<String> uploadAssignmentAnswers(
+            UUID questionId,
+            List<MultipartFile> files
+    ) {
+        List<String> objectUrls = new ArrayList<>();
+
+        for (MultipartFile file : files) {
+            String objectKey = buildAssignmentAnswerObjectKey(
+                    questionId,
+                    file.getOriginalFilename()
+            );
+
+            putObject(file, assignmentBucket, objectKey);
+
+            objectUrls.add(buildObjectUrl(assignmentBucket, objectKey));
+        }
+
+        return objectUrls;
+    }
+
+    @Override
+    public String uploadAssignmentConcatedImage(UUID questionId, BufferedImage image) {
+        // Generate unique object key for the concatenated image
+        String objectKey = String.format(
+                "assignment/%s/%s-concatenated.png",
+                questionId,
+                UUID.randomUUID()
+        );
+
+        // Convert BufferedImage to byte array
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try {
+            ImageIO.write(image, "png", baos);
+            byte[] imageBytes = baos.toByteArray();
+
+            // Upload to MinIO
+            createBucketIfNotExists(assignmentBucket);
+            minioClient.putObject(
+                    PutObjectArgs.builder()
+                            .bucket(assignmentBucket)
+                            .object(objectKey)
+                            .stream(new ByteArrayInputStream(imageBytes), imageBytes.length, -1)
+                            .contentType("image/png")
+                            .build()
+            );
+
+            return buildObjectUrl(assignmentBucket, objectKey);
+        } catch (Exception e) {
+            throw new StorageException("Failed to upload concatenated image to MinIO: " + e.getMessage());
         }
     }
 
