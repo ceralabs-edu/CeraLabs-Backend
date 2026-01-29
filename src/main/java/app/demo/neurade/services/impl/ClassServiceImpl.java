@@ -36,4 +36,10 @@ public class ClassServiceImpl implements ClassService {
         List<User> managedUsers = userService.getUsersUnderManagement(manager);
         return classRepository.findByCreatorIn(managedUsers);
     }
+
+    @Override
+    public Classroom getClass(Long classId) {
+        return classRepository.findById(classId)
+                .orElseThrow(() -> new IllegalArgumentException("Class with ID " + classId + " not found"));
+    }
 }

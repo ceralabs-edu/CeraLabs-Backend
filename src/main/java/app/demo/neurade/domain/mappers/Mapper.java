@@ -1,6 +1,7 @@
 package app.demo.neurade.domain.mappers;
 
 import app.demo.neurade.domain.dtos.*;
+import app.demo.neurade.domain.models.assignment.Assignment;
 import app.demo.neurade.infrastructures.llm.responses.ExtVerifyKeyResponse;
 import app.demo.neurade.domain.models.*;
 import lombok.RequiredArgsConstructor;
@@ -77,6 +78,16 @@ public class Mapper {
                 .model(aiPackage.getModel())
                 .durationInDays(aiPackage.getDurationInDays())
                 .description(aiPackage.getDescription())
+                .build();
+    }
+
+    public AssignmentDTO toDto(Assignment assignment) {
+        return AssignmentDTO.builder()
+                .id(assignment.getId())
+                .classId(assignment.getClassroom().getId())
+                .title(assignment.getTitle())
+                .description(assignment.getDescription())
+                .deadline(assignment.getDeadline())
                 .build();
     }
 }

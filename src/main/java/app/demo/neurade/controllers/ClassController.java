@@ -1,11 +1,14 @@
 package app.demo.neurade.controllers;
 
+import app.demo.neurade.domain.dtos.AssignmentDTO;
 import app.demo.neurade.domain.dtos.ClassDTO;
+import app.demo.neurade.domain.dtos.requests.AssignmentCreationRequest;
 import app.demo.neurade.domain.dtos.requests.ClassCreationRequest;
 import app.demo.neurade.domain.mappers.Mapper;
 import app.demo.neurade.domain.models.Classroom;
 import app.demo.neurade.exception.UnauthorizedException;
 import app.demo.neurade.security.CustomUserDetails;
+import app.demo.neurade.services.AssignmentService;
 import app.demo.neurade.services.ClassService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -25,7 +28,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/class")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
 @Tag(
         name = "Class",
         description = "APIs for managing classes"
@@ -34,6 +36,7 @@ public class ClassController {
 
     private final ClassService classService;
     private final Mapper mapper;
+    private final AssignmentService assignmentService;
 
     @Operation(
             summary = "Create a new class",
@@ -65,7 +68,8 @@ public class ClassController {
     })
 
     @SecurityRequirement(name = "bearerAuth")
-    @PostMapping("/create")
+    @PostMapping()
+    @PreAuthorize("hasAnyRole('ADMIN', 'ORGANIZATION', 'TEACHER')")
     public ResponseEntity<?> createClass(
             @RequestBody ClassCreationRequest req
     ) {
@@ -89,6 +93,7 @@ public class ClassController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'ORGANIZATION', 'TEACHER')")
     public ResponseEntity<?> getAllClassesUnderManagement() {
         CustomUserDetails userDetails =
                 (CustomUserDetails) SecurityContextHolder
@@ -104,5 +109,33 @@ public class ClassController {
                         .map(mapper::toDto)
                         .toList()
         );
+    }
+
+    @PostMapping("/{classId}/assignment")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ORGANIZATION', 'TEACHER')")
+    public ResponseEntity<?> createAssignment(
+            @PathVariable("classId") String classId,
+            @RequestBody AssignmentCreationRequest req
+            ) {
+        AssignmentDTO dto = assignmentService.createAssignment(
+                Long.parseLong(classId),
+                req
+        );
+        return ResponseEntity.ok(
+                Map.of(
+                        "message", "Assignment created successfully",
+                        "data", dto
+                )
+        );
+    }
+
+    @GetMapping("/{classId}")
+    public ResponseEntity<?> getClass(
+            @PathVariable("classId") String classId
+    ) {
+        Classroom classroom = classService.getClass(
+                Long.parseLong(classId)
+        );
+        return ResponseEntity.ok(mapper.toDto(classroom));
     }
 }

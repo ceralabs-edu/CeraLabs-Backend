@@ -9,4 +9,5 @@ import java.util.List;
 public interface ClassService {
     Classroom createClass(User creator, ClassCreationRequest req);
     List<Classroom> getAllClassesUnderManagement(User manager);
+    Classroom getClass(Long classId);
 }

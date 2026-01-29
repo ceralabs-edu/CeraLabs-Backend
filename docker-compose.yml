@@ -12,8 +12,8 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./ci/data.csv:/docker-entrypoint-initdb.d/data.csv
-      - ./ci/V1__init_schema.sql:/docker-entrypoint-initdb.d/V1__init_schema.sql
-      - ./ci/V2__populate_data.sql:/docker-entrypoint-initdb.d/V2__populate_data.sql
+      - ./ci/V1.0.0__init_schema.sql:/docker-entrypoint-initdb.d/V1.0.0__init_schema.sql
+      - ./ci/V99.0.0__populate_data.sql:/docker-entrypoint-initdb.d/V99.0.0__populate_data.sql
     networks:
       - app-network
 

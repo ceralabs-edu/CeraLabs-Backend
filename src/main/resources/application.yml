@@ -7,13 +7,16 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: ${JPA_DDL_AUTO:update}
+      ddl-auto: ${JPA_DDL_AUTO:none}
     show-sql: ${JPA_SHOW_SQL:false}
     properties:
       hibernate:
         format_sql: ${JPA_FORMAT_SQL:true}
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  flyway:
+    enabled: true
 
 minio:
   url: http://${MINIO_HOST}:${MINIO_PORT}
