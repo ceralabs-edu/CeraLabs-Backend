@@ -18,6 +18,16 @@ spring:
   flyway:
     enabled: true
 
+  cache:
+    type: redis
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      repositories:
+        enabled: false
+
 minio:
   url: http://${MINIO_HOST}:${MINIO_PORT}
   access-key: ${MINIO_ACCESS}
@@ -46,3 +56,8 @@ application:
       expiration: ${JWT_EXPIRATION:86400000} # 1 day
       refresh-token:
         expiration: ${JWT_REFRESH_EXPIRATION:604800000} # 7 days
+
+logging:
+  level:
+    org.springframework.cache: TRACE
+#    org.springframework.data.redis.cache: TRACE

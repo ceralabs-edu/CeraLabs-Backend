@@ -16,6 +16,7 @@ import app.demo.neurade.services.ClassService;
 import app.demo.neurade.services.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -61,6 +62,11 @@ public class ClassServiceImpl implements ClassService {
         return classRepository.findByCreatorIn(managedUsers);
     }
 
+    @Cacheable(
+            value = "classroom",
+            key = "#classId",
+            unless = "#result == null"
+    )
     @Override
     public Classroom getClass(Long classId) {
         return classRepository.findById(classId)
@@ -68,6 +74,11 @@ public class ClassServiceImpl implements ClassService {
     }
 
     @Override
+    @Cacheable(
+            value = "assignment",
+            key = "#assignmentId",
+            unless = "#result == null"
+    )
     public AssignmentDTO getAssignment(UUID assignmentId) {
         Assignment assignment = assignmentRepository.findById(assignmentId)
                 .orElseThrow(() -> new IllegalArgumentException("Assignment with ID " + assignmentId + " not found"));

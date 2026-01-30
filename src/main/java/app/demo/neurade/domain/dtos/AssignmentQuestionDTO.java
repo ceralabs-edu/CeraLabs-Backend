@@ -2,9 +2,7 @@ package app.demo.neurade.domain.dtos;
 
 import app.demo.neurade.domain.models.assignment.QuestionType;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -12,6 +10,8 @@ import java.util.UUID;
 @Getter
 @Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class AssignmentQuestionDTO {
     private UUID id;
 

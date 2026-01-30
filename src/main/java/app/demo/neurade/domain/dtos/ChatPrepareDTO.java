@@ -1,7 +1,7 @@
 package app.demo.neurade.domain.dtos;
 
 import app.demo.neurade.domain.models.chatbot.Conversation;
-import lombok.Builder;
+import lombok.*;
 
 import java.util.List;
 

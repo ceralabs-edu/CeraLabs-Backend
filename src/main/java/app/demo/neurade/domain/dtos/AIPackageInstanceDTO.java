@@ -1,8 +1,6 @@
 package app.demo.neurade.domain.dtos;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -10,6 +8,8 @@ import java.util.UUID;
 @Builder
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class AIPackageInstanceDTO {
     private UUID instanceId;
     private Integer aiPackageId;

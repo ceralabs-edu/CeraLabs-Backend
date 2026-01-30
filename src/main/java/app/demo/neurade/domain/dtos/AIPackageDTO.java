@@ -1,13 +1,13 @@
 package app.demo.neurade.domain.dtos;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 
 @Builder
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class AIPackageDTO {
     private Integer id;
     private String name;

@@ -19,6 +19,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -191,6 +192,11 @@ public class AIPackageServiceImpl implements AIPackageService {
                 .orElseThrow(() -> new RuntimeException("AI Package not found with id: " + packageId));
     }
 
+    @Cacheable(
+            value = "aiPackages",
+            key = "'allPackages'",
+            unless = "#result == null || #result.isEmpty()"
+    )
     @Override
     public List<AIPackage> getAllPackages() {
         return aiPackageRepository.findAll();
