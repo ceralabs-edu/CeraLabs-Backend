@@ -42,7 +42,7 @@ public class ProductController {
         return ResponseEntity.ok(
                 Map.of(
                         "message", "AI Package created successfully",
-                        "data", aiPackage
+                        "data", mapper.toDto(aiPackage)
                 )
         );
     }
