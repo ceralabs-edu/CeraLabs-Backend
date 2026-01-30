@@ -28,6 +28,9 @@ public class ChatbotClient {
     public ChatbotClient(@Value("${llm.qa.endpoint}") String workflowUrl) {
         this.webClient = WebClient.builder()
                 .baseUrl(workflowUrl)
+                .codecs(configurer ->
+                        configurer.defaultCodecs().maxInMemorySize(20 * 1024 * 1024) // 20MB
+                )
                 .build();
     }
 
@@ -59,8 +62,8 @@ public class ChatbotClient {
             return response;
 
         } catch (WebClientResponseException ex) {
-            log.error("LLM returned error: {}", ex.getResponseBodyAsString());
-            throw new RuntimeException("LLM error: " + ex.getResponseBodyAsString(), ex);
+            log.error("LLM returned error: " + ex.getMessage());
+            throw new RuntimeException("LLM error: " + ex.getMessage(), ex);
 
         } catch (WebClientRequestException ex) {
             throw new RuntimeException("LLM timeout or connection error", ex);

@@ -19,7 +19,6 @@ spring:
     enabled: true
     placeholders:
       csv_file: ${CSV_FILE}
-    out-of-order: true
 
   cache:
     type: redis
