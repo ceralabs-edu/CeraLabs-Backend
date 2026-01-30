@@ -206,4 +206,14 @@ public class ClassController {
                 )
         );
     }
+
+    @GetMapping("/all")
+    public ResponseEntity<?> getAllClasses() {
+        return ResponseEntity.ok(
+                classService.getAllClasses()
+                        .stream()
+                        .map(mapper::toDto)
+                        .toList()
+        );
+    }
 }

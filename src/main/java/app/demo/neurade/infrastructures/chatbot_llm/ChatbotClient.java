@@ -22,7 +22,7 @@ public class ChatbotClient {
     @Value("${llm.model}")
     private String model;
 
-    @Value("${llm.timeout:60}")
+    @Value("${llm.timeout}")
     private int timeoutSeconds;
 
     public ChatbotClient(@Value("${llm.qa.endpoint}") String workflowUrl) {

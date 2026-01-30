@@ -162,4 +162,9 @@ public class ClassServiceImpl implements ClassService {
                         }
                 );
     }
+
+    @Override
+    public List<Classroom> getAllClasses() {
+        return classRepository.findAll();
+    }
 }

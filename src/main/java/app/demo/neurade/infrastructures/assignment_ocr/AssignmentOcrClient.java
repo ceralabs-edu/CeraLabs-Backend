@@ -18,10 +18,7 @@ public class AssignmentOcrClient {
 
     private final WebClient webClient;
 
-    @Value("${llm.model}")
-    private String model;
-
-    @Value("${llm.timeout:60}")
+    @Value("${llm.timeout}")
     private int timeoutSeconds;
 
     public AssignmentOcrClient(@Value("${llm.assignment-ocr.endpoint}") String workflowUrl) {

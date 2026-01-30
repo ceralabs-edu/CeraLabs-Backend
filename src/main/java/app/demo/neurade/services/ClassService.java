@@ -18,4 +18,5 @@ public interface ClassService {
     List<UserDTO> getParticipantsInClass(Long classId);
     void addParticipants(Long classId, List<Long> userIds);
     void setClassInstanceUsageLimit(Long classId, UserInstanceUsageCreationRequest req);
+    List<Classroom> getAllClasses();
 }
