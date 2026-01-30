@@ -22,4 +22,5 @@ public interface UserInstanceUsageRepository extends JpaRepository<UserAIInstanc
             @Param("instanceId") UUID instanceId
     );
 
+    boolean existsByUser_IdAndInstance_Id(Long userId, UUID instanceId);
 }

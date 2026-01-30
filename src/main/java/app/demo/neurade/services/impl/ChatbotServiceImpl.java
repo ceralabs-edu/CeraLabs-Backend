@@ -55,7 +55,7 @@ public class ChatbotServiceImpl implements ChatbotService {
          * Phase 1: Validate and prepare (in transaction)
          */
         ChatPrepareDTO prepareResult = chatbotPersistenceService.prepareChat(user, instanceId, conversationId, question, files);
-
+        instanceId = prepareResult.instanceId();
         /*
          * Phase 2: Call workflow (outside transaction - no DB lock held)
          */

@@ -64,7 +64,11 @@ public class Mapper {
                 .build();
     }
 
-    public AIPackageInstanceDTO toDto(AIPackageInstance aiPackageInstance, AIPackage aiPackage) {
+    public AIPackageInstanceDTO toDto(AIPackageInstance aiPackageInstance) {
+        AIPackage aiPackage = aiPackageInstance.getAiPackage();
+        if (aiPackage == null) {
+            throw new RuntimeException("When mapping AIPackageInstance to DTO, the associated AIPackage is null");
+        }
         var builder = AIPackageInstanceDTO.builder()
                 .instanceId(aiPackageInstance.getId())
                 .aiPackageId(aiPackageInstance.getAiPackage().getId())
@@ -155,6 +159,21 @@ public class Mapper {
                                 .map(this::toDto)
                                 .toList()
                 )
+                .build();
+    }
+
+    public CommuneDTO toDto(Commune commune) {
+        return CommuneDTO.builder()
+                .id(commune.getId())
+                .name(commune.getFullName())
+                .provinceName(commune.getProvince().getFullName())
+                .build();
+    }
+
+    public ProvinceDTO toDto(Province province) {
+        return ProvinceDTO.builder()
+                .id(province.getId())
+                .name(province.getFullName())
                 .build();
     }
 }

@@ -2,6 +2,7 @@ package app.demo.neurade.controllers;
 
 import app.demo.neurade.domain.dtos.requests.AIPackageCreationRequest;
 import app.demo.neurade.domain.dtos.requests.AIPackagePurchaseRequest;
+import app.demo.neurade.domain.dtos.requests.GetInstanceForUserRequest;
 import app.demo.neurade.domain.dtos.requests.ValidateKeyRequest;
 import app.demo.neurade.domain.mappers.Mapper;
 import app.demo.neurade.domain.models.AIPackage;
@@ -26,7 +27,7 @@ public class ProductController {
 
     private final AIPackageService aiPackageService;
     private final Mapper mapper;
-    private final AIPackageInstanceService aIPackageInstanceService;
+    private final AIPackageInstanceService aiPackageInstanceService;
 
     @PostMapping("ai-model/api-key/validate")
     public ResponseEntity<?> getAIModels(@Valid @RequestBody ValidateKeyRequest req) {
@@ -84,7 +85,17 @@ public class ProductController {
     @GetMapping("/ai-package/instance/{instanceId}")
     public ResponseEntity<?> getAIPackageInstanceById(@PathVariable String instanceId) {
         return ResponseEntity.ok(
-                aIPackageInstanceService.getInstanceById(java.util.UUID.fromString(instanceId))
+                aiPackageInstanceService.getInstanceById(java.util.UUID.fromString(instanceId))
+        );
+    }
+
+    @GetMapping("/ai-package/instance")
+    public ResponseEntity<?> getAIPackageInstancesForUser(
+            @RequestBody GetInstanceForUserRequest req
+            ) {
+        CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(
+                aiPackageInstanceService.getInstanceForUser(userDetails.getUser().getId(), req.getClassId())
         );
     }
 }

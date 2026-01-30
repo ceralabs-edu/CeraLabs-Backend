@@ -104,10 +104,7 @@ public class AIPackageServiceImpl implements AIPackageService {
 
         log.info("AI Package Instance created with ID: {}", aiPackageInstance.getId());
 
-        return mapper.toDto(
-                aiPackageInstance,
-                aiPackage
-        );
+        return mapper.toDto(aiPackageInstance);
     }
 
 
@@ -160,10 +157,7 @@ public class AIPackageServiceImpl implements AIPackageService {
 
         log.info("AI Package Instance created with ID: {}", aiPackageInstance.getId());
 
-        return mapper.toDto(
-                aiPackageInstance,
-                aiPackage
-        );
+        return mapper.toDto(aiPackageInstance);
     }
 
     @Override

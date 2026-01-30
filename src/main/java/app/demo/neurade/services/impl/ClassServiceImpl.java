@@ -3,10 +3,10 @@ package app.demo.neurade.services.impl;
 import app.demo.neurade.domain.dtos.AssignmentDTO;
 import app.demo.neurade.domain.dtos.UserDTO;
 import app.demo.neurade.domain.dtos.requests.ClassCreationRequest;
+import app.demo.neurade.domain.dtos.requests.TokenUsageLimit;
+import app.demo.neurade.domain.dtos.requests.UserInstanceUsageCreationRequest;
 import app.demo.neurade.domain.mappers.Mapper;
-import app.demo.neurade.domain.models.ClassParticipant;
-import app.demo.neurade.domain.models.Classroom;
-import app.demo.neurade.domain.models.User;
+import app.demo.neurade.domain.models.*;
 import app.demo.neurade.domain.models.assignment.Assignment;
 import app.demo.neurade.domain.models.assignment.AssignmentQuestion;
 import app.demo.neurade.infrastructures.repositories.*;
@@ -32,6 +32,8 @@ public class ClassServiceImpl implements ClassService {
     private final AssignmentQuestionRepository assignmentQuestionRepository;
     private final Mapper mapper;
     private final UserRepository userRepository;
+    private final UserInstanceUsageRepository userInstanceUsageRepository;
+    private final AIPackageInstanceRepository aiPackageInstanceRepository;
 
     @Override
     @Transactional
@@ -115,5 +117,49 @@ public class ClassServiceImpl implements ClassService {
                 participantRepository.save(participant);
             }
         }
+    }
+
+    @Override
+    @Transactional
+    public void setClassInstanceUsageLimit(Long classId, UserInstanceUsageCreationRequest req) {
+        Long userId = req.getUserId();
+        TokenUsageLimit limit = req.getUsageLimit();
+        UUID instanceId = req.getInstanceId();
+
+        if (!participantRepository.existsByClazz_IdAndUser_Id(classId, userId)) {
+            throw new RuntimeException("User is not a participant of the class");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+
+        AIPackageInstance instance = aiPackageInstanceRepository.findById(instanceId)
+                .orElseThrow(() -> new RuntimeException("AI Package Instance not found with id: " + instanceId));
+
+        userInstanceUsageRepository.findForUpdate(user, instanceId)
+                .ifPresentOrElse(
+
+                        // Update existing usage record
+                        usage -> {
+                            usage.setLimitToken(limit.getTokenLimit());
+                            usage.setRateLimitTokenLimit(limit.getRateLimitTokenMax());
+                            usage.setRateLimitDurationDays(limit.getDurationInDays());
+                            userInstanceUsageRepository.save(usage);
+                        },
+
+
+                        // Create new usage record if not exists
+                        () -> {
+                            var usage = UserAIInstanceUsage.builder()
+                                    .user(user)
+                                    .instance(instance)
+                                    .limitToken(limit.getTokenLimit())
+                                    .rateLimitTokenLimit(limit.getRateLimitTokenMax())
+                                    .rateLimitDurationDays(limit.getDurationInDays())
+                                    .tokenUsed(0L)
+                                    .build();
+                            userInstanceUsageRepository.save(usage);
+                        }
+                );
     }
 }

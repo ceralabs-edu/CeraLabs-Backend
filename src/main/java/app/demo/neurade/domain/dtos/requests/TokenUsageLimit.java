@@ -1,11 +1,11 @@
 package app.demo.neurade.domain.dtos.requests;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class TokenUsageLimit {
     private Long tokenLimit;

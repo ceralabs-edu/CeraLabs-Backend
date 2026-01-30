@@ -5,6 +5,7 @@ import app.demo.neurade.domain.dtos.AssignmentQuestionDTO;
 import app.demo.neurade.domain.dtos.ClassDTO;
 import app.demo.neurade.domain.dtos.requests.AssignmentCreationRequest;
 import app.demo.neurade.domain.dtos.requests.ClassCreationRequest;
+import app.demo.neurade.domain.dtos.requests.UserInstanceUsageCreationRequest;
 import app.demo.neurade.domain.mappers.Mapper;
 import app.demo.neurade.domain.models.Classroom;
 import app.demo.neurade.exception.UnauthorizedException;
@@ -185,6 +186,23 @@ public class ClassController {
         return ResponseEntity.ok(
                 Map.of(
                         "message", "Users invited successfully"
+                )
+        );
+    }
+
+    @PostMapping("/{classId}/instance-usage-limit")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ORGANIZATION', 'TEACHER')")
+    public ResponseEntity<?> setClassInstanceUsageLimit(
+            @PathVariable("classId") String classId,
+            @RequestBody UserInstanceUsageCreationRequest req
+    ) {
+        classService.setClassInstanceUsageLimit(
+                Long.parseLong(classId),
+                req
+        );
+        return ResponseEntity.ok(
+                Map.of(
+                        "message", "Class instance usage limit set successfully"
                 )
         );
     }

@@ -42,7 +42,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleEntityNotFoundException(EntityNotFoundException ex) {
         return buildErrorResponse(
                 HttpStatus.NOT_FOUND,
-                ex.getMessage() + ". Check user email and try again."
+                ex.getMessage()
         );
     }
 

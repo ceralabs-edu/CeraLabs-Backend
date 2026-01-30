@@ -45,6 +45,11 @@ public class ChatbotPersistenceServiceImpl implements ChatbotPersistenceService 
             String question,
             List<MultipartFile> files
     ) {
+        Conversation conversation = getOrCreateConversation(conversationId, instanceId);
+        instanceId = conversation.getInstance().getId();
+        if (instanceId == null) {
+            throw new EntityNotFoundException("AI Package Instance not found for the conversation");
+        }
         UserAIInstanceUsage usage = userInstanceUsageRepository
                 .findForUpdate(user, instanceId)
                 .orElseThrow(() ->
@@ -54,8 +59,6 @@ public class ChatbotPersistenceServiceImpl implements ChatbotPersistenceService 
         if (!usage.canUseThisPackage()) {
             throw new RuntimeException("User has exceeded their AI package usage limits");
         }
-
-        Conversation conversation = getOrCreateConversation(conversationId);
 
         QAEntry qaEntry = qaEntryRepository.save(
                 QAEntry.builder()
@@ -79,6 +82,7 @@ public class ChatbotPersistenceServiceImpl implements ChatbotPersistenceService 
 
         return ChatPrepareDTO.builder()
                 .conversation(conversation)
+                .instanceId(instanceId)
                 .qaEntryId(qaEntry.getId())
                 .assetUrls(assetUrls)
                 .apiKey(apiKey)
@@ -148,10 +152,15 @@ public class ChatbotPersistenceServiceImpl implements ChatbotPersistenceService 
     }
 
 
-    private Conversation getOrCreateConversation(String conversationId) {
+    private Conversation getOrCreateConversation(String conversationId, UUID instanceId) {
         if (conversationId == null) {
+            AIPackageInstance instance = aIPackageInstanceRepository
+                    .findById(instanceId)
+                    .orElseThrow(() -> new EntityNotFoundException("AI Package Instance not found when trying to create conversation"));
             return conversationRepository.save(
-                    Conversation.builder().build()
+                    Conversation.builder()
+                            .instance(instance)
+                            .build()
             );
         }
 
