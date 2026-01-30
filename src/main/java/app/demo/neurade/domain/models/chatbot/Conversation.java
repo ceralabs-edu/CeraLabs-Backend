@@ -1,6 +1,7 @@
 package app.demo.neurade.domain.models.chatbot;
 
 import app.demo.neurade.domain.models.AIPackageInstance;
+import app.demo.neurade.domain.models.User;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -14,7 +15,8 @@ import java.time.LocalDateTime;
 @Table(
         name = "conversations",
         indexes = {
-                @Index(name = "idx_conversations_instance_id", columnList = "instance_id")
+                @Index(name = "idx_conversations_instance_id", columnList = "instance_id"),
+                @Index(name = "idx_conversations_user_id", columnList = "user_id")
         }
 )
 public class Conversation {
@@ -34,6 +36,14 @@ public class Conversation {
             foreignKey = @ForeignKey(name = "fk_conversation_ai_instance")
     )
     private AIPackageInstance instance;
+
+    @ManyToOne
+    @JoinColumn(
+            name = "user_id",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "fk_conversation_user")
+    )
+    private User user;
 
     @PrePersist
     public void prePersist() {

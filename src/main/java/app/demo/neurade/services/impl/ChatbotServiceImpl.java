@@ -195,4 +195,9 @@ public class ChatbotServiceImpl implements ChatbotService {
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<Conversation> getUserConversations(Long userId) {
+        return conversationRepository.findAllByUser_Id(userId);
+    }
 }

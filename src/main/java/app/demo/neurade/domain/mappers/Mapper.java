@@ -3,6 +3,7 @@ package app.demo.neurade.domain.mappers;
 import app.demo.neurade.domain.dtos.*;
 import app.demo.neurade.domain.models.assignment.Assignment;
 import app.demo.neurade.domain.models.assignment.AssignmentQuestion;
+import app.demo.neurade.domain.models.chatbot.Conversation;
 import app.demo.neurade.domain.models.chatbot.QAEntry;
 import app.demo.neurade.domain.models.chatbot.QuestionAsset;
 import app.demo.neurade.infrastructures.chatbot_llm.responses.VerifyKeyResponse;
@@ -174,6 +175,13 @@ public class Mapper {
         return ProvinceDTO.builder()
                 .id(province.getId())
                 .name(province.getFullName())
+                .build();
+    }
+
+    public ConversationDTO toDto(Conversation conversation) {
+        return ConversationDTO.builder()
+                .id(conversation.getId())
+                .createdAt(conversation.getCreatedAt())
                 .build();
     }
 }

@@ -45,7 +45,7 @@ public class ChatbotPersistenceServiceImpl implements ChatbotPersistenceService 
             String question,
             List<MultipartFile> files
     ) {
-        Conversation conversation = getOrCreateConversation(conversationId, instanceId);
+        Conversation conversation = getOrCreateConversation(conversationId, instanceId, user);
         instanceId = conversation.getInstance().getId();
         if (instanceId == null) {
             throw new EntityNotFoundException("AI Package Instance not found for the conversation");
@@ -152,7 +152,7 @@ public class ChatbotPersistenceServiceImpl implements ChatbotPersistenceService 
     }
 
 
-    private Conversation getOrCreateConversation(String conversationId, UUID instanceId) {
+    private Conversation getOrCreateConversation(String conversationId, UUID instanceId, User user) {
         if (conversationId == null) {
             AIPackageInstance instance = aIPackageInstanceRepository
                     .findById(instanceId)
@@ -160,6 +160,7 @@ public class ChatbotPersistenceServiceImpl implements ChatbotPersistenceService 
             return conversationRepository.save(
                     Conversation.builder()
                             .instance(instance)
+                            .user(user)
                             .build()
             );
         }
