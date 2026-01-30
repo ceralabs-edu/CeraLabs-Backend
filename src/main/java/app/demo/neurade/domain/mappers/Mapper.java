@@ -3,6 +3,8 @@ package app.demo.neurade.domain.mappers;
 import app.demo.neurade.domain.dtos.*;
 import app.demo.neurade.domain.models.assignment.Assignment;
 import app.demo.neurade.domain.models.assignment.AssignmentQuestion;
+import app.demo.neurade.domain.models.chatbot.QAEntry;
+import app.demo.neurade.domain.models.chatbot.QuestionAsset;
 import app.demo.neurade.infrastructures.chatbot_llm.responses.VerifyKeyResponse;
 import app.demo.neurade.domain.models.*;
 import lombok.RequiredArgsConstructor;
@@ -132,5 +134,27 @@ public class Mapper {
         }
 
         return builder.build();
+    }
+
+    public ChatHistoryEntryAssetDTO toDto(QuestionAsset asset) {
+        return ChatHistoryEntryAssetDTO.builder()
+                .type(asset.getType())
+                .objectUrl(asset.getObjectUrl())
+                .mimeType(asset.getMimeType())
+                .orderIndex(asset.getOrderIndex())
+                .build();
+    }
+
+    public ChatHistoryEntryDTO toDto(QAEntry entry) {
+        return ChatHistoryEntryDTO.builder()
+                .question(entry.getQuestionText())
+                .answer(entry.getAnswer())
+                .timestamp(entry.getCreatedAt())
+                .assets(
+                        entry.getAssets().stream()
+                                .map(this::toDto)
+                                .toList()
+                )
+                .build();
     }
 }

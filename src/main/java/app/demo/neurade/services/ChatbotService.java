@@ -1,5 +1,6 @@
 package app.demo.neurade.services;
 
+import app.demo.neurade.domain.dtos.ChatHistoryEntryDTO;
 import app.demo.neurade.domain.dtos.ChatResponseDTO;
 import app.demo.neurade.domain.models.User;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,4 +16,6 @@ public interface ChatbotService {
             String question,
             List<MultipartFile> files
     );
+
+    List<ChatHistoryEntryDTO> getChatHistory(String conversationId);
 }

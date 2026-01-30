@@ -1,13 +1,16 @@
 package app.demo.neurade.services.impl;
 
+import app.demo.neurade.domain.dtos.ChatHistoryEntryDTO;
 import app.demo.neurade.domain.dtos.ChatPrepareDTO;
 import app.demo.neurade.domain.dtos.ChatResponseDTO;
+import app.demo.neurade.domain.mappers.Mapper;
 import app.demo.neurade.domain.models.User;
 import app.demo.neurade.domain.models.chatbot.Conversation;
 import app.demo.neurade.domain.models.chatbot.QAEntry;
 import app.demo.neurade.infrastructures.chatbot_llm.ChatbotClient;
 import app.demo.neurade.infrastructures.chatbot_llm.requests.WorkflowRequest;
 import app.demo.neurade.infrastructures.chatbot_llm.responses.WorkflowResponse;
+import app.demo.neurade.infrastructures.repositories.ConversationRepository;
 import app.demo.neurade.infrastructures.repositories.QAEntryRepository;
 import app.demo.neurade.services.ChatbotService;
 import app.demo.neurade.services.ChatbotPersistenceService;
@@ -33,6 +36,8 @@ public class ChatbotServiceImpl implements ChatbotService {
     private final ChatbotClient chatbotClient;
     private final QAEntryRepository qaEntryRepository;
     private final ChatbotPersistenceService chatbotPersistenceService;
+    private final ConversationRepository conversationRepository;
+    private final Mapper mapper;
 
 
     @Value("${llm.top-k}")
@@ -180,4 +185,14 @@ public class ChatbotServiceImpl implements ChatbotService {
         return total;
     }
 
+    @Override
+    public List<ChatHistoryEntryDTO> getChatHistory(String conversationId) {
+        if (!conversationRepository.existsById(conversationId)) {
+            throw new IllegalArgumentException("Conversation not found with id: " + conversationId);
+        }
+        List<QAEntry> entries = qaEntryRepository.findAllByConversationIdWithAssets(conversationId);
+        return entries.stream()
+                .map(mapper::toDto)
+                .collect(Collectors.toList());
+    }
 }

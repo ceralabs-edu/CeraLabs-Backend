@@ -77,4 +77,13 @@ public class ChatbotController {
                 )
         );
     }
+
+    @GetMapping("/{conversationId}/history")
+    public ResponseEntity<?> getChatHistory(
+            @PathVariable String conversationId
+    ) {
+        return ResponseEntity.ok(
+                chatbotService.getChatHistory(conversationId)
+        );
+    }
 }
