@@ -28,8 +28,8 @@ services:
       - app-network
 
   app:
-    build: .
-#    image: bananaonthetree/backend-neurade:0.0.1
+#    build: .
+    image: bananaonthetree/backend-neurade:0.0.8
     container_name: neurade-app
     restart: always
     ports:

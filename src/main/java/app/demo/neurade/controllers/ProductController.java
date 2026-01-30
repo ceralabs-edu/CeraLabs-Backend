@@ -89,7 +89,7 @@ public class ProductController {
         );
     }
 
-    @GetMapping("/ai-package/instance")
+    @PostMapping("/ai-package/instance")
     public ResponseEntity<?> getAIPackageInstancesForUser(
             @RequestBody GetInstanceForUserRequest req
             ) {

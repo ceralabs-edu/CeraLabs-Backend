@@ -51,7 +51,7 @@ llm:
     endpoint: ${LLM_QA_ENDPOINT}
   assignment-ocr:
     endpoint: ${LLM_ASSIGNMENT_OCR_ENDPOINT}
-  timeout: ${LLM_TIMEOUT_SECONDS}
+  timeout: ${LLM_TIMEOUT_SECONDS:180}
 
 application:
   security:
