@@ -1,6 +1,7 @@
 package app.demo.neurade.services.impl;
 
 import app.demo.neurade.domain.dtos.AssignmentDTO;
+import app.demo.neurade.domain.dtos.UserDTO;
 import app.demo.neurade.domain.dtos.requests.ClassCreationRequest;
 import app.demo.neurade.domain.mappers.Mapper;
 import app.demo.neurade.domain.models.ClassParticipant;
@@ -8,10 +9,7 @@ import app.demo.neurade.domain.models.Classroom;
 import app.demo.neurade.domain.models.User;
 import app.demo.neurade.domain.models.assignment.Assignment;
 import app.demo.neurade.domain.models.assignment.AssignmentQuestion;
-import app.demo.neurade.infrastructures.repositories.AssignmentQuestionRepository;
-import app.demo.neurade.infrastructures.repositories.AssignmentRepository;
-import app.demo.neurade.infrastructures.repositories.ClassRepository;
-import app.demo.neurade.infrastructures.repositories.ParticipantRepository;
+import app.demo.neurade.infrastructures.repositories.*;
 import app.demo.neurade.services.ClassService;
 import app.demo.neurade.services.UserService;
 import jakarta.transaction.Transactional;
@@ -33,6 +31,7 @@ public class ClassServiceImpl implements ClassService {
     private final ParticipantRepository participantRepository;
     private final AssignmentQuestionRepository assignmentQuestionRepository;
     private final Mapper mapper;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
@@ -85,6 +84,36 @@ public class ClassServiceImpl implements ClassService {
 
         List<AssignmentQuestion> questions = assignmentQuestionRepository.findAllByAssignment(assignment);
         return mapper.toDto(assignment, questions, false);
+    }
 
+    @Override
+    public List<UserDTO> getParticipantsInClass(Long classId) {
+        List<ClassParticipant> participants = participantRepository.findAllByClazz_Id(classId);
+        return participants.stream()
+                .map(ClassParticipant::getUser)
+                .map(mapper::toDto)
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public void addParticipants(Long classId, List<Long> userIds) {
+        for (Long userId : userIds) {
+            if (!participantRepository.existsByClazz_IdAndUser_Id(classId, userId)) {
+                User user = userRepository.findById(userId)
+                        .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId + " not found"));
+
+                Classroom classroom = classRepository.findById(classId)
+                        .orElseThrow(() -> new IllegalArgumentException("Class with ID " + classId + " not found"));
+
+                ClassParticipant participant = ClassParticipant.builder()
+                        .user(user)
+                        .clazz(classroom)
+                        .joinedAt(LocalDateTime.now())
+                        .build();
+
+                participantRepository.save(participant);
+            }
+        }
     }
 }

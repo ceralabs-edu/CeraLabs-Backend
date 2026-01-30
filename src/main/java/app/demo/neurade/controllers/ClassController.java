@@ -165,5 +165,27 @@ public class ClassController {
         return ResponseEntity.ok(mapper.toDto(classroom));
     }
 
+    @GetMapping("/{classId}/participants")
+    public ResponseEntity<?> getClassParticipants(
+            @PathVariable("classId") String classId
+    ) {
+        List<?> participants = classService.getParticipantsInClass(
+                Long.parseLong(classId)
+        );
+        return ResponseEntity.ok(participants);
+    }
 
+    @PostMapping("/{classId}/invite")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ORGANIZATION', 'TEACHER')")
+    public ResponseEntity<?> inviteUsersToClass(
+            @PathVariable("classId") String classId,
+            @RequestBody List<Long> inviteIds
+    ) {
+        classService.addParticipants(Long.parseLong(classId), inviteIds);
+        return ResponseEntity.ok(
+                Map.of(
+                        "message", "Users invited successfully"
+                )
+        );
+    }
 }
