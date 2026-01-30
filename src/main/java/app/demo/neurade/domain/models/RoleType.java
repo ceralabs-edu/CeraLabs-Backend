@@ -18,5 +18,14 @@ public enum RoleType {
         this.roleId = roleId;
     }
 
+    public static RoleType getRoleById(short id) {
+        for (RoleType role : RoleType.values()) {
+            if (role.getRoleId() == id) {
+                return role;
+            }
+        }
+        throw new IllegalArgumentException("No role found with id " + id);
+    }
+
 }
 

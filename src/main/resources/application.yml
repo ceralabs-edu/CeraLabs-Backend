@@ -17,6 +17,8 @@ spring:
 
   flyway:
     enabled: true
+    placeholders:
+      csv_file: ${CSV_FILE}
 
   cache:
     type: redis

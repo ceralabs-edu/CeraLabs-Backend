@@ -58,4 +58,11 @@ public class UserController {
                 )
         );
     }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<?> getUser(@PathVariable String userId) {
+        return ResponseEntity.ok(
+                userService.getUserAndInfo(Long.parseLong(userId))
+        );
+    }
 }

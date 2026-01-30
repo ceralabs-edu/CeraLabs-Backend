@@ -18,6 +18,7 @@ public class Mapper {
                 .id(user.getId())
                 .email(user.getEmail())
                 .verified(user.getVerified())
+                .role(RoleType.getRoleById(user.getRole().getId()).getRoleName())
                 .build();
     }
 
@@ -34,6 +35,13 @@ public class Mapper {
                 .favoriteSubjects(userInformation.getFavoriteSubjects())
                 .dateOfBirth(userInformation.getDateOfBirth())
                 .avatarUrl(userInformation.getAvatarImage())
+                .build();
+    }
+
+    public UserAndInfoDTO toDto(User user, UserInformation userInformation) {
+        return UserAndInfoDTO.builder()
+                .user(toDto(user))
+                .info(toDto(userInformation))
                 .build();
     }
 

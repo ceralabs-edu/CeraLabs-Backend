@@ -96,6 +96,9 @@ services:
       JPA_SHOW_SQL: ${JPA_SHOW_SQL}
       JPA_FORMAT_SQL: ${JPA_FORMAT_SQL}
 
+      # ===== ADDITIONAL SETTINGS =====
+      CSV_FILE: ${CSV_FILE}
+
     depends_on:
       - postgres
 #      - minio

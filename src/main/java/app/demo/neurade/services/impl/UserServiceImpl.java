@@ -1,6 +1,8 @@
 package app.demo.neurade.services.impl;
 
+import app.demo.neurade.domain.dtos.UserAndInfoDTO;
 import app.demo.neurade.domain.dtos.requests.PatchUserRequest;
+import app.demo.neurade.domain.mappers.Mapper;
 import app.demo.neurade.domain.models.RoleType;
 import app.demo.neurade.domain.models.User;
 import app.demo.neurade.domain.models.UserInformation;
@@ -30,6 +32,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserInformationRepository infoRepository;
     private final PeopleManagementRepository peopleManagementRepository;
+    private final Mapper mapper;
 
     @Override
     @Transactional
@@ -78,5 +81,26 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
         return getUsersUnderManagement(user);
+    }
+
+    @Override
+    public UserAndInfoDTO getUserAndInfo(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + id));
+        UserInformation info = infoRepository.findByUser_Id(id)
+                .orElseThrow(() -> new EntityNotFoundException("User information not found for user id: " + id));
+        return mapper.toDto(user, info);
+    }
+
+    @Override
+    public List<UserAndInfoDTO> getAllUsersAndInfo() {
+        List<UserAndInfoDTO> result = new ArrayList<>();
+        List<User> users = userRepository.findAll();
+        for (User user : users) {
+            UserInformation info = infoRepository.findByUser_Id(user.getId())
+                    .orElseThrow(() -> new EntityNotFoundException("User information not found for user id: " + user.getId()));
+            result.add(mapper.toDto(user, info));
+        }
+        return result;
     }
 }

@@ -33,7 +33,7 @@ CREATE TEMP TABLE raw_address (
 -- IMPORT CSV
 -- =====================================================
 COPY raw_address
-    FROM '/docker-entrypoint-initdb.d/data.csv'
+    FROM '${csv_file}'
     DELIMITER ','
     CSV HEADER;
 
