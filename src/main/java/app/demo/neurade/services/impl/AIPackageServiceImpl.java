@@ -77,6 +77,7 @@ public class AIPackageServiceImpl implements AIPackageService {
         return dto;
     }
 
+    @Transactional
     public AIPackageInstanceDTO purchasePackageForUser(User buyer, Integer aiPackageId) {
         AIPackage aiPackage = aiPackageRepository.findById(aiPackageId)
                 .orElseThrow(() -> new RuntimeException("AI Package not found with id: " + aiPackageId));

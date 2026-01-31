@@ -19,9 +19,7 @@ spring:
     enabled: true
     placeholders:
       csv_file: ${CSV_FILE}
-
-  cache:
-    type: redis
+      api_key: ${LLM_API_KEY}
 
   data:
     redis:
