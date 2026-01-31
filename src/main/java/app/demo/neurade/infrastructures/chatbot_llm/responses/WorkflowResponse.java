@@ -1,4 +1,4 @@
-package app.demo.neurade.infrastructures.llm.responses;
+package app.demo.neurade.infrastructures.chatbot_llm.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;

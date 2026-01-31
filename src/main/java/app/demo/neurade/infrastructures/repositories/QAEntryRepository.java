@@ -19,4 +19,13 @@ public interface QAEntryRepository extends JpaRepository<QAEntry, Long> {
             @Param("conversation") Conversation conversation,
             Pageable pageable
     );
+
+    @Query("""
+        SELECT DISTINCT q
+        FROM QAEntry q
+        LEFT JOIN FETCH q.assets
+        WHERE q.conversation.id = :conversationId
+        ORDER BY q.createdAt
+    """)
+    List<QAEntry> findAllByConversationIdWithAssets(String conversationId);
 }

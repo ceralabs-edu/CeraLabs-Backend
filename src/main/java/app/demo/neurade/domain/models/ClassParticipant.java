@@ -7,11 +7,23 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "class_participants",
+@Table(
+        name = "class_participants",
         uniqueConstraints = @UniqueConstraint(
                 name = "uk_class_user",
                 columnNames = {"class_id", "user_id"}
-        ))
+        ),
+        indexes = {
+                @Index(
+                        name = "idx_class_participant_class",
+                        columnList = "class_id"
+                ),
+                @Index(
+                        name = "idx_class_participant_user",
+                        columnList = "user_id"
+                )
+        }
+)
 @Getter
 @Setter
 @NoArgsConstructor

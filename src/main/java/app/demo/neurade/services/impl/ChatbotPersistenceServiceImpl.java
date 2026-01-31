@@ -3,17 +3,15 @@ package app.demo.neurade.services.impl;
 import app.demo.neurade.domain.dtos.ChatAssetUploadDTO;
 import app.demo.neurade.domain.dtos.ChatPrepareDTO;
 import app.demo.neurade.domain.models.AIPackage;
+import app.demo.neurade.domain.models.AIPackageInstance;
 import app.demo.neurade.domain.models.User;
 import app.demo.neurade.domain.models.UserAIInstanceUsage;
 import app.demo.neurade.domain.models.chatbot.Conversation;
 import app.demo.neurade.domain.models.chatbot.QAEntry;
 import app.demo.neurade.domain.models.chatbot.QuestionAsset;
 import app.demo.neurade.exception.UnauthorizedException;
-import app.demo.neurade.infrastructures.repositories.ConversationRepository;
-import app.demo.neurade.infrastructures.repositories.QAEntryRepository;
-import app.demo.neurade.infrastructures.repositories.QuestionAssetRepository;
-import app.demo.neurade.infrastructures.repositories.UserInstanceUsageRepository;
-import app.demo.neurade.services.ChatbotTxService;
+import app.demo.neurade.infrastructures.repositories.*;
+import app.demo.neurade.services.ChatbotPersistenceService;
 import app.demo.neurade.services.FileService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -29,13 +27,14 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class ChatbotTxServiceImpl implements ChatbotTxService {
+public class ChatbotPersistenceServiceImpl implements ChatbotPersistenceService {
 
     private final UserInstanceUsageRepository userInstanceUsageRepository;
     private final QAEntryRepository qaEntryRepository;
     private final ConversationRepository conversationRepository;
     private final FileService fileService;
     private final QuestionAssetRepository questionAssetRepository;
+    private final AIPackageInstanceRepository aIPackageInstanceRepository;
 
     @Override
     @Transactional
@@ -46,6 +45,11 @@ public class ChatbotTxServiceImpl implements ChatbotTxService {
             String question,
             List<MultipartFile> files
     ) {
+        Conversation conversation = getOrCreateConversation(conversationId, instanceId, user);
+        instanceId = conversation.getInstance().getId();
+        if (instanceId == null) {
+            throw new EntityNotFoundException("AI Package Instance not found for the conversation");
+        }
         UserAIInstanceUsage usage = userInstanceUsageRepository
                 .findForUpdate(user, instanceId)
                 .orElseThrow(() ->
@@ -55,8 +59,6 @@ public class ChatbotTxServiceImpl implements ChatbotTxService {
         if (!usage.canUseThisPackage()) {
             throw new RuntimeException("User has exceeded their AI package usage limits");
         }
-
-        Conversation conversation = getOrCreateConversation(conversationId);
 
         QAEntry qaEntry = qaEntryRepository.save(
                 QAEntry.builder()
@@ -78,10 +80,9 @@ public class ChatbotTxServiceImpl implements ChatbotTxService {
             throw new RuntimeException("No API key available in the AI package");
         }
 
-        log.info("Selected API key: {}", apiKey);
-
         return ChatPrepareDTO.builder()
                 .conversation(conversation)
+                .instanceId(instanceId)
                 .qaEntryId(qaEntry.getId())
                 .assetUrls(assetUrls)
                 .apiKey(apiKey)
@@ -102,11 +103,18 @@ public class ChatbotTxServiceImpl implements ChatbotTxService {
         qaEntry.setAnswer(reply);
         qaEntryRepository.save(qaEntry);
 
+        AIPackageInstance instance = aIPackageInstanceRepository
+                .findByIdForUpdate(instanceId)
+                .orElseThrow(() -> new EntityNotFoundException("AI Package Instance not found"));
+        instance.deductTokens(tokenUsed);
+        aIPackageInstanceRepository.save(instance);
+
         UserAIInstanceUsage usage = userInstanceUsageRepository
                 .findForUpdate(user, instanceId)
                 .orElseThrow(() ->
                         new UnauthorizedException("No usage record found for user and instance")
                 );
+
         usage.useToken(tokenUsed);
         userInstanceUsageRepository.save(usage);
     }
@@ -144,10 +152,16 @@ public class ChatbotTxServiceImpl implements ChatbotTxService {
     }
 
 
-    private Conversation getOrCreateConversation(String conversationId) {
+    private Conversation getOrCreateConversation(String conversationId, UUID instanceId, User user) {
         if (conversationId == null) {
+            AIPackageInstance instance = aIPackageInstanceRepository
+                    .findById(instanceId)
+                    .orElseThrow(() -> new EntityNotFoundException("AI Package Instance not found when trying to create conversation"));
             return conversationRepository.save(
-                    Conversation.builder().build()
+                    Conversation.builder()
+                            .instance(instance)
+                            .user(user)
+                            .build()
             );
         }
 

@@ -12,7 +12,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,6 +32,9 @@ public class MinioFileServiceImpl implements FileService {
 
     @Value("${minio.bucket.chat}")
     private String chatBucket;
+
+    @Value("${minio.bucket.assignment}")
+    private String assignmentBucket;
 
     @Value("${minio.url}")
     private String minioUrl;
@@ -60,7 +68,6 @@ public class MinioFileServiceImpl implements FileService {
                     .type(resolveAssetType(file.getContentType()))
                     .objectUrl(
                             buildObjectUrl(chatBucket, objectKey)
-//                            presignGetObject(chatBucket, objectKey, 3600)
                     )
                     .mimeType(file.getContentType())
                     .orderIndex(order)
@@ -70,6 +77,61 @@ public class MinioFileServiceImpl implements FileService {
         }
 
         return results;
+    }
+
+    @Override
+    public String uploadBase64Image(String base64DataUrl, String objectKeyPrefix) {
+        // Extract base64 data from data URL
+        String base64 = base64DataUrl.substring(base64DataUrl.indexOf(",") + 1);
+        byte[] bytes = Base64.getDecoder().decode(base64);
+
+        // Determine content type from data URL
+        String contentType = "image/png"; // default
+        if (base64DataUrl.startsWith("data:")) {
+            int commaIndex = base64DataUrl.indexOf(",");
+            String mimeType = base64DataUrl.substring(5, commaIndex);
+            if (mimeType.contains(";")) {
+                mimeType = mimeType.substring(0, mimeType.indexOf(";"));
+            }
+            if (!mimeType.isEmpty()) {
+                contentType = mimeType;
+            }
+        }
+
+        // Determine file extension
+        String extension = "png";
+        if (contentType.contains("jpeg") || contentType.contains("jpg")) {
+            extension = "jpg";
+        } else if (contentType.contains("gif")) {
+            extension = "gif";
+        } else if (contentType.contains("webp")) {
+            extension = "webp";
+        }
+
+        // Generate unique object key
+        String objectKey = String.format(
+                "%s/%s.%s",
+                objectKeyPrefix,
+                UUID.randomUUID(),
+                extension
+        );
+
+        // Upload to MinIO using existing infrastructure
+        createBucketIfNotExists(assignmentBucket);
+        try {
+            minioClient.putObject(
+                    PutObjectArgs.builder()
+                            .bucket(assignmentBucket)
+                            .object(objectKey)
+                            .stream(new ByteArrayInputStream(bytes), bytes.length, -1)
+                            .contentType(contentType)
+                            .build()
+            );
+        } catch (Exception e) {
+            throw new StorageException("Failed to upload base64 image to MinIO: " + e.getMessage());
+        }
+
+        return buildObjectUrl(assignmentBucket, objectKey);
     }
 
     private String buildChatObjectKey(
@@ -130,7 +192,7 @@ public class MinioFileServiceImpl implements FileService {
                             .bucket(bucketName)
                             .build()
             );
-            ensurePublicReadPolicy(bucketName);
+
         } catch (Exception e) {
             throw new StorageException("Failed to check if bucket exists: " + e.getMessage());
         }
@@ -145,10 +207,8 @@ public class MinioFileServiceImpl implements FileService {
             } catch (Exception e) {
                 throw new StorageException("Failed to create bucket: " + e.getMessage());
             }
-            System.out.println("Bucket created: " + bucketName);
-        } else {
-            System.out.println("Bucket already exists: " + bucketName);
         }
+        ensurePublicReadPolicy(bucketName);
     }
 
     private void ensurePublicReadPolicy(String bucketName) {
@@ -194,6 +254,71 @@ public class MinioFileServiceImpl implements FileService {
             );
         } catch (Exception e) {
             throw new StorageException("Failed to generate presigned URL: " + e.getMessage());
+        }
+    }
+
+    private String buildAssignmentAnswerObjectKey(
+            UUID questionId,
+            String originalFilename
+    ) {
+        return String.format(
+                "assignment/%s/%s-%s",
+                questionId,
+                UUID.randomUUID(),
+                originalFilename
+        );
+    }
+
+    @Override
+    public List<String> uploadAssignmentAnswers(
+            UUID questionId,
+            List<MultipartFile> files
+    ) {
+        List<String> objectUrls = new ArrayList<>();
+
+        for (MultipartFile file : files) {
+            String objectKey = buildAssignmentAnswerObjectKey(
+                    questionId,
+                    file.getOriginalFilename()
+            );
+
+            putObject(file, assignmentBucket, objectKey);
+
+            objectUrls.add(buildObjectUrl(assignmentBucket, objectKey));
+        }
+
+        return objectUrls;
+    }
+
+    @Override
+    public String uploadAssignmentConcatedImage(UUID questionId, BufferedImage image) {
+        // Generate unique object key for the concatenated image
+        String objectKey = String.format(
+                "assignment/%s/%s-concatenated.png",
+                questionId,
+                UUID.randomUUID()
+        );
+
+        // Convert BufferedImage to byte array
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try {
+            ImageIO.write(image, "png", baos);
+            byte[] imageBytes = baos.toByteArray();
+
+            // Upload to MinIO
+            createBucketIfNotExists(assignmentBucket);
+            minioClient.putObject(
+                    PutObjectArgs.builder()
+                            .bucket(assignmentBucket)
+                            .object(objectKey)
+                            .stream(new ByteArrayInputStream(imageBytes), imageBytes.length, -1)
+                            .contentType("image/png")
+                            .build()
+            );
+
+            return buildObjectUrl(assignmentBucket, objectKey);
+        } catch (Exception e) {
+            throw new StorageException("Failed to upload concatenated image to MinIO: " + e.getMessage());
         }
     }
 

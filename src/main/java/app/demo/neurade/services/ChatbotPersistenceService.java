@@ -7,7 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.UUID;
 
-public interface ChatbotTxService {
+public interface ChatbotPersistenceService {
     ChatPrepareDTO prepareChat(
             User user,
             UUID instanceId,

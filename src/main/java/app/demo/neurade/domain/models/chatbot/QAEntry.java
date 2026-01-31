@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -40,7 +39,7 @@ public class QAEntry {
             orphanRemoval = true
     )
     @OrderBy("orderIndex ASC")
-    private List<QuestionAsset> assets = new ArrayList<>();
+    private List<QuestionAsset> assets;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

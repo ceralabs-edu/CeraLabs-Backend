@@ -12,5 +12,5 @@ import java.util.UUID;
 public class UserInstanceUsageCreationRequest {
     private Long userId;
     private UUID instanceId;
-    private TokenUsageLimit tokenLimit;
+    private TokenUsageLimit usageLimit;
 }

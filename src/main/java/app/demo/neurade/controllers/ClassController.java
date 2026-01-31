@@ -1,11 +1,16 @@
 package app.demo.neurade.controllers;
 
+import app.demo.neurade.domain.dtos.AssignmentDTO;
+import app.demo.neurade.domain.dtos.AssignmentQuestionDTO;
 import app.demo.neurade.domain.dtos.ClassDTO;
+import app.demo.neurade.domain.dtos.requests.AssignmentCreationRequest;
 import app.demo.neurade.domain.dtos.requests.ClassCreationRequest;
+import app.demo.neurade.domain.dtos.requests.UserInstanceUsageCreationRequest;
 import app.demo.neurade.domain.mappers.Mapper;
 import app.demo.neurade.domain.models.Classroom;
 import app.demo.neurade.exception.UnauthorizedException;
 import app.demo.neurade.security.CustomUserDetails;
+import app.demo.neurade.services.AssignmentService;
 import app.demo.neurade.services.ClassService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -19,13 +24,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/class")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
 @Tag(
         name = "Class",
         description = "APIs for managing classes"
@@ -34,6 +41,7 @@ public class ClassController {
 
     private final ClassService classService;
     private final Mapper mapper;
+    private final AssignmentService assignmentService;
 
     @Operation(
             summary = "Create a new class",
@@ -65,7 +73,8 @@ public class ClassController {
     })
 
     @SecurityRequirement(name = "bearerAuth")
-    @PostMapping("/create")
+    @PostMapping()
+    @PreAuthorize("hasAnyRole('ADMIN', 'ORGANIZATION', 'TEACHER')")
     public ResponseEntity<?> createClass(
             @RequestBody ClassCreationRequest req
     ) {
@@ -89,6 +98,7 @@ public class ClassController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'ORGANIZATION', 'TEACHER')")
     public ResponseEntity<?> getAllClassesUnderManagement() {
         CustomUserDetails userDetails =
                 (CustomUserDetails) SecurityContextHolder
@@ -100,6 +110,107 @@ public class ClassController {
 
         return ResponseEntity.ok(
                 classService.getAllClassesUnderManagement(userDetails.getUser())
+                        .stream()
+                        .map(mapper::toDto)
+                        .toList()
+        );
+    }
+
+    @PostMapping("/{classId}/assignment")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ORGANIZATION', 'TEACHER')")
+    public ResponseEntity<?> createAssignment(
+            @PathVariable("classId") String classId,
+            @RequestBody AssignmentCreationRequest req
+            ) {
+        AssignmentDTO dto = assignmentService.createAssignment(
+                Long.parseLong(classId),
+                req
+        );
+        return ResponseEntity.ok(
+                Map.of(
+                        "message", "Assignment created successfully",
+                        "data", dto
+                )
+        );
+    }
+
+    @PostMapping("/{classId}/assignment/{assignmentId}/question")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ORGANIZATION', 'TEACHER')")
+    public ResponseEntity<?> addFileToAssignment(
+            @PathVariable("classId") String classId,
+            @PathVariable("assignmentId") UUID assignmentId,
+            @RequestPart("files") List<MultipartFile> files
+    ) {
+        List<AssignmentQuestionDTO> dtos = assignmentService.createAndProcessPDF(assignmentId, files);
+        return ResponseEntity.ok(dtos);
+    }
+
+    @GetMapping("/{classId}/assignment/{assignmentId}")
+    public ResponseEntity<?> getAssignment(
+            @PathVariable("classId") String classId,
+            @PathVariable("assignmentId") UUID assignmentId
+    ) {
+        AssignmentDTO dto = classService.getAssignment(
+                assignmentId
+        );
+        return ResponseEntity.ok(dto);
+    }
+
+    @GetMapping("/{classId}")
+    public ResponseEntity<?> getClass(
+            @PathVariable("classId") String classId
+    ) {
+        Classroom classroom = classService.getClass(
+                Long.parseLong(classId)
+        );
+        return ResponseEntity.ok(mapper.toDto(classroom));
+    }
+
+    @GetMapping("/{classId}/participants")
+    public ResponseEntity<?> getClassParticipants(
+            @PathVariable("classId") String classId
+    ) {
+        List<?> participants = classService.getParticipantsInClass(
+                Long.parseLong(classId)
+        );
+        return ResponseEntity.ok(participants);
+    }
+
+    @PostMapping("/{classId}/invite")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ORGANIZATION', 'TEACHER')")
+    public ResponseEntity<?> inviteUsersToClass(
+            @PathVariable("classId") String classId,
+            @RequestBody List<Long> inviteIds
+    ) {
+        classService.addParticipants(Long.parseLong(classId), inviteIds);
+        return ResponseEntity.ok(
+                Map.of(
+                        "message", "Users invited successfully"
+                )
+        );
+    }
+
+    @PostMapping("/{classId}/instance-usage-limit")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ORGANIZATION', 'TEACHER')")
+    public ResponseEntity<?> setClassInstanceUsageLimit(
+            @PathVariable("classId") String classId,
+            @RequestBody UserInstanceUsageCreationRequest req
+    ) {
+        classService.setClassInstanceUsageLimit(
+                Long.parseLong(classId),
+                req
+        );
+        return ResponseEntity.ok(
+                Map.of(
+                        "message", "Class instance usage limit set successfully"
+                )
+        );
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<?> getAllClasses() {
+        return ResponseEntity.ok(
+                classService.getAllClasses()
                         .stream()
                         .map(mapper::toDto)
                         .toList()

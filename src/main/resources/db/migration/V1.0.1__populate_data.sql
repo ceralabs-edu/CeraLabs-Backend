@@ -33,7 +33,7 @@ CREATE TEMP TABLE raw_address (
 -- IMPORT CSV
 -- =====================================================
 COPY raw_address
-    FROM '/docker-entrypoint-initdb.d/data.csv'
+    FROM '${csv_file}'
     DELIMITER ','
     CSV HEADER;
 
@@ -82,3 +82,56 @@ WHERE code IS NOT NULL
   AND parent_code IS NOT NULL
   AND parent_code <> ''
 ON CONFLICT (code) DO NOTHING;
+
+
+-- =====================================================
+-- SEED ADMIN USER
+-- =====================================================
+-- Insert admin user
+-- Password: P@ssw0rd123 (BCrypt hashed with strength 10)
+INSERT INTO users (role_id, email, password_hash, verified, created_at, updated_at)
+VALUES (
+    1,
+    'admin@example.com',
+    '$2a$10$MfHVIpwEL/c9T/Vgho3S1OPX6iGWNU4T9TdK8J6feqLQ6LOhQ6olu',
+    true,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+)
+ON CONFLICT (email) DO NOTHING;
+
+-- Insert admin user information
+INSERT INTO user_information (
+    user_id,
+    first_name,
+    last_name,
+    city_code,
+    sub_district_code,
+    address_detail,
+    school,
+    grade,
+    favorite_subjects,
+    bio,
+    date_of_birth,
+    created_at,
+    updated_at
+)
+SELECT
+    u.id,
+    'Admin',
+    'Nguyen',
+    '11',
+    '9995',
+    'Homeless',
+    'University of Engineering and Technology, VNU',
+    'Unemployed',
+    ARRAY['Math', 'Physics', 'English'],
+    'Da Admin',
+    '2004-11-29'::date,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
+FROM users u
+WHERE u.email = 'admin@example.com'
+ON CONFLICT (user_id) DO NOTHING;
+
+

@@ -1,6 +1,7 @@
 package app.demo.neurade.controllers;
 
 import app.demo.neurade.domain.dtos.requests.ChatRequest;
+import app.demo.neurade.domain.mappers.Mapper;
 import app.demo.neurade.exception.UnauthorizedException;
 import app.demo.neurade.security.CustomUserDetails;
 import app.demo.neurade.services.ChatbotService;
@@ -27,6 +28,7 @@ import java.util.List;
 public class ChatbotController {
 
     private final ChatbotService chatbotService;
+    private final Mapper mapper;
 
     @Operation(
             summary = "Chat with AI chatbot",
@@ -75,6 +77,32 @@ public class ChatbotController {
                         request.getQuestion(),
                         files
                 )
+        );
+    }
+
+    @GetMapping("/{conversationId}/history")
+    public ResponseEntity<?> getChatHistory(
+            @PathVariable String conversationId
+    ) {
+        return ResponseEntity.ok(
+                chatbotService.getChatHistory(conversationId)
+        );
+    }
+
+    @GetMapping("/conversations")
+    public ResponseEntity<?> getUserConversations() {
+        CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
+
+        if (userDetails == null) throw new UnauthorizedException("Unauthorized");
+
+        return ResponseEntity.ok(
+                chatbotService.getUserConversations(userDetails.getUser().getId())
+                        .stream()
+                        .map(mapper::toDto)
+                        .toList()
         );
     }
 }
