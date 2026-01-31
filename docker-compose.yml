@@ -27,6 +27,16 @@ services:
     networks:
       - app-network
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq-service
+    restart: always
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+    networks:
+      - app-network
+
   app:
 #    build: .
     image: bananaonthetree/backend-neurade:0.0.8

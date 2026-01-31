@@ -6,6 +6,7 @@ import app.demo.neurade.domain.models.assignment.AssignmentQuestion;
 import app.demo.neurade.domain.models.chatbot.Conversation;
 import app.demo.neurade.domain.models.chatbot.QAEntry;
 import app.demo.neurade.domain.models.chatbot.QuestionAsset;
+import app.demo.neurade.domain.rabbitmq.ChatbotChatJob;
 import app.demo.neurade.infrastructures.chatbot_llm.responses.VerifyKeyResponse;
 import app.demo.neurade.domain.models.*;
 import lombok.RequiredArgsConstructor;
@@ -182,6 +183,15 @@ public class Mapper {
         return ConversationDTO.builder()
                 .id(conversation.getId())
                 .createdAt(conversation.getCreatedAt())
+                .build();
+    }
+
+    public ChatbotChatJobDTO toDto(ChatbotChatJob chatbotChatJob) {
+        return ChatbotChatJobDTO.builder()
+                .jobId(chatbotChatJob.getJobId())
+                .status(chatbotChatJob.getStatus())
+                .errorMessage(chatbotChatJob.getErrorMessage())
+                .response(chatbotChatJob.getResponse())
                 .build();
     }
 }

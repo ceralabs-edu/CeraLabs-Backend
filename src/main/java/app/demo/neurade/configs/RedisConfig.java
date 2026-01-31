@@ -1,4 +1,4 @@
-package app.demo.neurade.infrastructures.configs;
+package app.demo.neurade.configs;
 
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;

@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -42,6 +43,15 @@ public class AssignmentJudgeServiceImpl implements AssignmentJudgeService {
         ExecutorService executorService = Executors.newFixedThreadPool(10);
         Map<String, String> result = new ConcurrentHashMap<>();
 
+        List<UUID> questionIds = answers.keySet().stream()
+                .map(UUID::fromString)
+                .toList();
+
+        Map<UUID, AssignmentQuestion> questionMap = assignmentQuestionRepository
+                .findAllById(questionIds)
+                .stream()
+                .collect(Collectors.toMap(AssignmentQuestion::getId, q -> q));
+
         try {
             // Create a list of futures for all answer checking tasks
             List<CompletableFuture<Void>> futures = answers.entrySet().stream()
@@ -49,8 +59,7 @@ public class AssignmentJudgeServiceImpl implements AssignmentJudgeService {
                         try {
                             UUID uuid = UUID.fromString(entry.getKey());
                             MultipartFile file = entry.getValue();
-                            AssignmentQuestion question = assignmentQuestionRepository.findById(uuid)
-                                    .orElseThrow(() -> new IllegalArgumentException("Invalid question ID: " + uuid));
+                            AssignmentQuestion question = questionMap.get(uuid);
 
                             String judgement = null;
                             if (!(file == null || file.isEmpty())) {

@@ -1,4 +1,4 @@
-package app.demo.neurade.infrastructures.configs;
+package app.demo.neurade.configs;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
