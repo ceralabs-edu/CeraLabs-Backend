@@ -86,7 +86,7 @@ public class ChatbotController {
         );
     }
 
-    @GetMapping("/chat/job/{jobId}")
+    @GetMapping("/chat/job-status/{jobId}")
     public ResponseEntity<?> getChatJobStatus(
             @PathVariable UUID jobId
     ) {

@@ -17,6 +17,11 @@ public class RabbitMQConfig {
     public static final String CHATBOT_EXCHANGE = "chatbot.processing.exchange";
     public static final String CHATBOT_ROUTING_KEY = "chatbot.process";
 
+    public static final String ASSIGNMENT_QUEUE = "assignment.judge.queue";
+    public static final String ASSIGNMENT_DLQ = "assignment.judge.dlq";
+    public static final String ASSIGNMENT_EXCHANGE = "assignment.judge.exchange";
+    public static final String ASSIGNMENT_ROUTING_KEY = "assignment.judge";
+
     @Bean
     public JacksonJsonMessageConverter messageConverter() {
         return new JacksonJsonMessageConverter();
@@ -57,6 +62,32 @@ public class RabbitMQConfig {
         return BindingBuilder.bind(chatbotQueue)
                 .to(chatbotExchange)
                 .with(CHATBOT_ROUTING_KEY)
+                .noargs();
+    }
+
+    @Bean
+    public Queue assignmentQueue() {
+        return QueueBuilder.durable(ASSIGNMENT_QUEUE)
+                .withArgument("x-dead-letter-exchange", "")
+                .withArgument("x-dead-letter-routing-key", ASSIGNMENT_DLQ)
+                .build();
+    }
+
+    @Bean
+    public Queue assignmentDLQ() {
+        return QueueBuilder.durable(ASSIGNMENT_DLQ).build();
+    }
+
+    @Bean
+    public Exchange assignmentExchange() {
+        return new DirectExchange(ASSIGNMENT_EXCHANGE);
+    }
+
+    @Bean
+    public Binding assignmentBinding(Queue assignmentQueue, Exchange assignmentExchange) {
+        return BindingBuilder.bind(assignmentQueue)
+                .to(assignmentExchange)
+                .with(ASSIGNMENT_ROUTING_KEY)
                 .noargs();
     }
 }

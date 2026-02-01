@@ -17,7 +17,6 @@ import app.demo.neurade.services.JobStatusService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -36,10 +35,6 @@ public class ChatbotServiceImpl implements ChatbotService {
     private final Mapper mapper;
     private final JobStatusService jobStatusService;
     private final RabbitTemplate rabbitTemplate;
-
-
-    @Value("${llm.top-k}")
-    private int topK;
 
     @Override
     public List<ChatHistoryEntryDTO> getChatHistory(String conversationId) {
@@ -84,7 +79,7 @@ public class ChatbotServiceImpl implements ChatbotService {
         );
 
         chatJob.setStatus(JobStatus.QUEUED);
-        jobStatusService.saveChatbotChatJob(chatJob);
+        jobStatusService.saveJob(chatJob);
 
         rabbitTemplate.convertAndSend(
                 RabbitMQConfig.CHATBOT_EXCHANGE,
@@ -119,6 +114,6 @@ public class ChatbotServiceImpl implements ChatbotService {
 
     @Override
     public ChatbotChatJob getChatJobStatus(UUID jobId) {
-        return jobStatusService.getChatbotChatJob(jobId);
+        return jobStatusService.getJob(jobId, ChatbotChatJob.class);
     }
 }

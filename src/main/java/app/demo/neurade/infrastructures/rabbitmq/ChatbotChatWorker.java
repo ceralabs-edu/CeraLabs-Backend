@@ -48,7 +48,7 @@ public class ChatbotChatWorker {
             log.info("Processing ChatbotChatJob with ID: {}", job.getJobId());
 
             job.setStatus(JobStatus.PROCESSING);
-            jobStatusService.saveChatbotChatJob(job);
+            jobStatusService.saveJob(job);
 
             Conversation conversation = conversationRepository.findById(job.getConversationId())
                     .orElseThrow(() -> new IllegalArgumentException(
@@ -67,14 +67,14 @@ public class ChatbotChatWorker {
 
             handleResponse(job, workflowResponse);
             job.setStatus(JobStatus.COMPLETED);
-            jobStatusService.saveChatbotChatJob(job);
+            jobStatusService.saveJob(job);
             log.info("Completed ChatbotChatJob with ID: {}", job.getJobId());
 
         } catch (Exception e) {
             log.error("Error processing ChatbotChatJob with ID: {}", job.getJobId(), e);
             job.setStatus(JobStatus.FAILED);
             job.setErrorMessage(e.getMessage());
-            jobStatusService.saveChatbotChatJob(job);
+            jobStatusService.saveJob(job);
             throw e;
         }
     }

@@ -1,145 +1,100 @@
 package app.demo.neurade.services.impl;
 
+import app.demo.neurade.configs.RabbitMQConfig;
 import app.demo.neurade.domain.models.StudentAnswer;
 import app.demo.neurade.domain.models.User;
 import app.demo.neurade.domain.models.assignment.AssignmentQuestion;
-import app.demo.neurade.infrastructures.chatbot_llm.ChatbotClient;
-import app.demo.neurade.infrastructures.chatbot_llm.requests.WorkflowRequest;
-import app.demo.neurade.infrastructures.chatbot_llm.responses.WorkflowResponse;
+import app.demo.neurade.domain.rabbitmq.AssignmentJob;
+import app.demo.neurade.domain.rabbitmq.JobStatus;
 import app.demo.neurade.infrastructures.repositories.AssignmentQuestionRepository;
 import app.demo.neurade.infrastructures.repositories.StudentAnswerRepository;
 import app.demo.neurade.services.AssignmentJudgeService;
 import app.demo.neurade.services.FileService;
-import app.demo.neurade.services.ImageService;
+import app.demo.neurade.services.JobStatusService;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class AssignmentJudgeServiceImpl implements AssignmentJudgeService {
 
-    private final ChatbotClient chatbotClient;
-    private final ImageService imageService;
+    @PersistenceContext
+    private final EntityManager entityManager;
     private final AssignmentQuestionRepository assignmentQuestionRepository;
     private final FileService fileService;
     private final StudentAnswerRepository studentAnswerRepository;
+    private final JobStatusService jobStatusService;
+    private final RabbitTemplate rabbitTemplate;
     @Value("${llm.api-key}")
     private String apiKey;
 
     @Override
     @Transactional
     public Map<String, String> checkAnswers(User user, Map<String, MultipartFile> answers) {
-        // Create a thread pool with 10 threads for parallel processing
-        ExecutorService executorService = Executors.newFixedThreadPool(10);
-        Map<String, String> result = new ConcurrentHashMap<>();
+        Map<String, String> results = new HashMap<>();
+        for (var entry : answers.entrySet()) {
+            UUID questionId = UUID.fromString(entry.getKey());
+            MultipartFile answerImage = entry.getValue();
+            log.info("Uploading answer image for user ID: {} with question ID: {}", user.getId(), questionId);
+            String imageUrl = fileService.uploadAssignmentAnswers(questionId, List.of(answerImage)).getFirst();
+            log.info("Uploaded answer image to URL: {}", imageUrl);
+            String newJobId = UUID.randomUUID().toString();
 
-        List<UUID> questionIds = answers.keySet().stream()
-                .map(UUID::fromString)
-                .toList();
+            AssignmentJob job = AssignmentJob.builder()
+                    .jobId(UUID.fromString(newJobId))
+                    .userId(user.getId())
+                    .answerImageUrl(imageUrl)
+                    .apiKey(apiKey)
+                    .questionId(questionId)
+                    .status(JobStatus.QUEUED)
+                    .build();
 
-        Map<UUID, AssignmentQuestion> questionMap = assignmentQuestionRepository
-                .findAllById(questionIds)
-                .stream()
-                .collect(Collectors.toMap(AssignmentQuestion::getId, q -> q));
+            jobStatusService.saveJob(job);
+            log.info("Created AssignmentJob with ID: {} for user ID: {} and question ID: {}", newJobId, user.getId(), questionId);
+            results.put(entry.getKey(), newJobId);
 
-        try {
-            // Create a list of futures for all answer checking tasks
-            List<CompletableFuture<Void>> futures = answers.entrySet().stream()
-                    .map(entry -> CompletableFuture.runAsync(() -> {
-                        try {
-                            UUID uuid = UUID.fromString(entry.getKey());
-                            MultipartFile file = entry.getValue();
-                            AssignmentQuestion question = questionMap.get(uuid);
-
-                            String judgement = null;
-                            if (!(file == null || file.isEmpty())) {
-                                judgement = checkAnswer(question, file);
-                            }
-
-                            // Check if a record already exists for this student-question pair
-                            Optional<StudentAnswer> existingAnswer = studentAnswerRepository
-                                    .findByStudent_IdAndQuestion_Id(user.getId(), uuid);
-
-                            StudentAnswer studentAnswer;
-                            if (existingAnswer.isPresent()) {
-                                // Update existing record
-                                studentAnswer = existingAnswer.get();
-                                studentAnswer.setJudgement(judgement);
-                                log.info("Updating existing answer for student {} and question {}", user.getId(), uuid);
-                            } else {
-                                // Create new record
-                                studentAnswer = StudentAnswer.builder()
-                                        .student(user)
-                                        .question(question)
-                                        .judgement(judgement)
-                                        .build();
-                                log.info("Creating new answer for student {} and question {}", user.getId(), uuid);
-                            }
-                            studentAnswerRepository.save(studentAnswer);
-
-                            result.put(entry.getKey(), judgement);
-                        } catch (Exception e) {
-                            log.error("Error processing answer for question: {}", entry.getKey(), e);
-                            throw new RuntimeException("Failed to process answer for question: " + entry.getKey(), e);
-                        }
-                    }, executorService))
-                    .toList();
-
-            // Wait for all tasks to complete
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-
-        } finally {
-            // Shutdown the executor service
-            executorService.shutdown();
-            try {
-                if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
-                    executorService.shutdownNow();
-                }
-            } catch (InterruptedException e) {
-                executorService.shutdownNow();
-                Thread.currentThread().interrupt();
-            }
+            rabbitTemplate.convertAndSend(
+                    RabbitMQConfig.ASSIGNMENT_EXCHANGE,
+                    RabbitMQConfig.ASSIGNMENT_ROUTING_KEY,
+                    job
+            );
         }
-
-        return result;
+        return results;
     }
 
-    private String checkAnswer(AssignmentQuestion question, MultipartFile answerImage) {
-        log.info("Preparing to judge answer for question ID: {}", question.getId());
-        log.info("Composing question image for question ID: {}", question.getId());
-        BufferedImage image = imageService.concatQuestionImages(question);
-        log.info("Compose done. Uploading assets for question ID: {}", question.getId());
-        List<String> assetUrls = new ArrayList<>();
-        String imageUrl = fileService.uploadAssignmentConcatedImage(question.getId(), image);
-        assetUrls.add(imageUrl);
-        assetUrls.addAll(fileService.uploadAssignmentAnswers(question.getId(), List.of(answerImage)));
+    @Transactional
+    @Override
+    public void saveJudgement(String judgement, Long studentId, UUID questionId) {
+        Optional<StudentAnswer> existingAnswer = studentAnswerRepository
+                .findByStudent_IdAndQuestion_Id(studentId, questionId);
 
-        log.info("Calling workflow to judge answer for question ID: {}", question.getId());
-        log.info("Asset URLs: {}", assetUrls);
-
-        WorkflowResponse response = chatbotClient.callWorkflow(
-                List.of(
-                        new WorkflowRequest.Query(
-                                "user",
-                                "Đánh giá bài làm cho câu hỏi sau, dựa trên các đáp án và lời giải được cung cấp."
-                        )
-                ),
-                apiKey,
-                assetUrls
-        );
-        String judgement = response.getGuardianRaw().getContent();
-        log.info("Judgement for question ID {}: {}", question.getId(), judgement);
-        return judgement;
+        if (existingAnswer.isPresent()) {
+            StudentAnswer studentAnswer = existingAnswer.get();
+            studentAnswer.setJudgement(judgement);
+            studentAnswerRepository.save(studentAnswer);
+            log.info("Updated judgement for student {} and question {}", studentId, questionId);
+        } else {
+            User userRef = entityManager.getReference(User.class, studentId);
+            AssignmentQuestion questionRef = entityManager.getReference(AssignmentQuestion.class, questionId);
+            StudentAnswer studentAnswer = StudentAnswer.builder()
+                    .student(userRef)
+                    .question(questionRef)
+                    .judgement(judgement)
+                    .build();
+            studentAnswerRepository.save(studentAnswer);
+            log.info("Saved new judgement for student {} and question {}", studentId, questionId);
+        }
     }
 
     @Override
@@ -158,5 +113,10 @@ public class AssignmentJudgeServiceImpl implements AssignmentJudgeService {
             result.putIfAbsent(question.getId(), null);
         }
         return result;
+    }
+
+    @Override
+    public AssignmentJob getAssignmentJob(UUID jobId) {
+        return jobStatusService.getJob(jobId, AssignmentJob.class);
     }
 }

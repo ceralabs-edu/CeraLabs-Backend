@@ -1,6 +1,7 @@
 package app.demo.neurade.domain.rabbitmq;
 
 import app.demo.neurade.domain.dtos.ChatResponseDTO;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import java.util.List;
 import java.util.UUID;
@@ -10,7 +11,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Getter
 @Setter
-public class ChatbotChatJob {
+public class ChatbotChatJob implements RabbitJob {
     private UUID jobId;
     private JobStatus status;
     private Long userId;
@@ -22,4 +23,10 @@ public class ChatbotChatJob {
     private List<String> fileUrls;
     private String errorMessage;
     private ChatResponseDTO response;
+
+    @Override
+    @JsonIgnore
+    public String getJobPrefix() {
+        return "chatbot:chat:job:";
+    }
 }
