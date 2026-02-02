@@ -28,6 +28,17 @@ spring:
       repositories:
         enabled: false
 
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+    listener:
+      simple:
+        concurrency: 2
+        max-concurrency: 5
+        prefetch: 1
+
 minio:
   url: http://${MINIO_HOST}:${MINIO_PORT}
   access-key: ${MINIO_ACCESS}

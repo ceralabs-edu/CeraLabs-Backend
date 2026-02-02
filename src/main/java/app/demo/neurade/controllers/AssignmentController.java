@@ -1,5 +1,6 @@
 package app.demo.neurade.controllers;
 
+import app.demo.neurade.domain.mappers.Mapper;
 import app.demo.neurade.exception.UnauthorizedException;
 import app.demo.neurade.security.CustomUserDetails;
 import app.demo.neurade.services.AssignmentJudgeService;
@@ -18,6 +19,7 @@ import java.util.UUID;
 public class AssignmentController {
 
     private final AssignmentJudgeService assignmentJudgeService;
+    private final Mapper mapper;
 
     @PostMapping("/judge")
     public ResponseEntity<?> judgeAssignment(
@@ -31,7 +33,20 @@ public class AssignmentController {
                 userDetails.getUser(),
                 answers
         );
-        return ResponseEntity.ok(res);
+        return ResponseEntity.ok(
+                Map.of(
+                        "message", "Assignment answers enqueued for judgement",
+                        "jobIds", res
+                )
+        );
+    }
+
+    @GetMapping("/judge/job-status/{jobId}")
+    public ResponseEntity<?> getAssignmentJudgeJobStatus(
+            @PathVariable UUID jobId
+    ) {
+        var result = assignmentJudgeService.getAssignmentJob(jobId);
+        return ResponseEntity.ok(mapper.toDto(result));
     }
 
     @GetMapping("/{assignmentId}/judgement")

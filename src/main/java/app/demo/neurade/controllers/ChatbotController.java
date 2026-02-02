@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 
 @RestController
@@ -68,15 +70,28 @@ public class ChatbotController {
                 .getPrincipal();
 
         if (userDetails == null) throw new UnauthorizedException("Unauthorized");
+        UUID jobId = chatbotService.enqueueChat(
+                userDetails.getUser(),
+                request.getInstanceId(),
+                request.getConversationId(),
+                request.getQuestion(),
+                files
+        );
 
         return ResponseEntity.ok(
-                chatbotService.chat(
-                        userDetails.getUser(),
-                        request.getInstanceId(),
-                        request.getConversationId(),
-                        request.getQuestion(),
-                        files
+                Map.of(
+                        "jobId", jobId,
+                        "message", "Chat request enqueued successfully"
                 )
+        );
+    }
+
+    @GetMapping("/chat/job-status/{jobId}")
+    public ResponseEntity<?> getChatJobStatus(
+            @PathVariable UUID jobId
+    ) {
+        return ResponseEntity.ok(
+                mapper.toDto(chatbotService.getChatJobStatus(jobId))
         );
     }
 

@@ -1,4 +1,4 @@
-package app.demo.neurade.infrastructures.configs;
+package app.demo.neurade.configs;
 
 import io.minio.MinioClient;
 import org.springframework.beans.factory.annotation.Value;
