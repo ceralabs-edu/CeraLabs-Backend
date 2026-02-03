@@ -94,13 +94,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserAndInfoDTO> getAllUsersAndInfo() {
-        List<UserAndInfoDTO> result = new ArrayList<>();
-        List<User> users = userRepository.findAll();
-        for (User user : users) {
-            UserInformation info = infoRepository.findByUser_Id(user.getId())
-                    .orElseThrow(() -> new EntityNotFoundException("User information not found for user id: " + user.getId()));
-            result.add(mapper.toDto(user, info));
-        }
-        return result;
+        List<UserInformation> infos = infoRepository.findInfoByAllUser();
+        return infos.stream()
+                .map(info -> {
+                    User user = info.getUser();
+                    return mapper.toDto(user, info);
+                })
+                .toList();
     }
 }
