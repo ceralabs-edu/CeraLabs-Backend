@@ -2,6 +2,7 @@ package app.demo.neurade.configs;
 
 import app.demo.neurade.security.CustomUserDetailsService;
 import app.demo.neurade.security.JwtAuthFilter;
+import app.demo.neurade.security.OAuth2SuccessHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,7 +37,8 @@ public class SecurityConfig {
             "/api/v1/class/all",
             "/v3/api-docs/**",
             "/swagger-ui/**",
-            "/swagger-ui.html"
+            "/swagger-ui.html",
+            "/oauth2/**"
     };
     private final CustomUserDetailsService userDetailsService;
     private final JwtAuthFilter jwtAuthFilter;
@@ -80,7 +82,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, OAuth2SuccessHandler oAuth2SuccessHandler) {
         http
                 .cors(cors -> {})
                 .csrf(AbstractHttpConfigurer::disable)
@@ -89,6 +91,9 @@ public class SecurityConfig {
                         .requestMatchers(WHITELIST).permitAll()
                         .anyRequest().authenticated()
                 )
+                .oauth2Login(oauth ->
+                        oauth.successHandler(oAuth2SuccessHandler)
+                ) // Send request to http://backend_ip_address/oauth2/authorization/google
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 

@@ -45,7 +45,6 @@ public class UserInformation {
     @ManyToOne
     @JoinColumn(
             name = "city_code",
-            nullable = false,
             referencedColumnName = "code",
             foreignKey = @ForeignKey(name = "fk_user_information_city")
     )
@@ -85,4 +84,16 @@ public class UserInformation {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        LocalDateTime now = LocalDateTime.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 }

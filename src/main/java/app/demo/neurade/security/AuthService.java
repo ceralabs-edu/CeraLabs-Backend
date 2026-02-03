@@ -10,8 +10,11 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +30,8 @@ public class AuthService {
     private final AuthenticationManager authManager;
     private final JwtService jwtService;
     private final Mapper mapper;
+    private final UserDetailsService userDetailsService;
+    private final CookieService cookieService;
 
 
     @Transactional
@@ -95,7 +100,7 @@ public class AuthService {
                 .build();
     }
 
-    public AuthResponse login(AuthRequest req) {
+    public List<String> login(AuthRequest req) {
         Authentication auth = new UsernamePasswordAuthenticationToken(
                 req.getEmail(),
                 req.getPassword()
@@ -109,12 +114,7 @@ public class AuthService {
 
         String accessToken = jwtService.generateToken(userDetails);
         String refreshToken = jwtService.refreshToken(userDetails);
-        User user = ((CustomUserDetails) userDetails).getUser();
 
-        return AuthResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .user(mapper.toDto(user))
-                .build();
+        return List.of(accessToken, refreshToken);
     }
 }
