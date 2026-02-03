@@ -12,6 +12,7 @@ import app.demo.neurade.domain.models.assignment.AssignmentQuestion;
 import app.demo.neurade.infrastructures.repositories.*;
 import app.demo.neurade.services.ClassService;
 import app.demo.neurade.services.UserService;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
@@ -34,6 +35,7 @@ public class ClassServiceImpl implements ClassService {
     private final UserRepository userRepository;
     private final UserInstanceUsageRepository userInstanceUsageRepository;
     private final AIPackageInstanceRepository aiPackageInstanceRepository;
+    private final EntityManager entityManager;
 
     @Override
     @Transactional
@@ -100,23 +102,24 @@ public class ClassServiceImpl implements ClassService {
     @Override
     @Transactional
     public void addParticipants(Long classId, List<Long> userIds) {
-        for (Long userId : userIds) {
-            if (!participantRepository.existsByClazz_IdAndUser_Id(classId, userId)) {
-                User user = userRepository.findById(userId)
-                        .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId + " not found"));
+        Classroom classroom = classRepository.findById(classId)
+                .orElseThrow(() -> new IllegalArgumentException("Class with ID " + classId + " not found"));
 
-                Classroom classroom = classRepository.findById(classId)
-                        .orElseThrow(() -> new IllegalArgumentException("Class with ID " + classId + " not found"));
+        var existingUserIds = participantRepository.findExistingUserIdsInClass(classId, userIds);
 
-                ClassParticipant participant = ClassParticipant.builder()
-                        .user(user)
-                        .clazz(classroom)
-                        .joinedAt(LocalDateTime.now())
-                        .build();
+        List<ClassParticipant> participants = userIds.stream()
+                .filter(id -> !existingUserIds.contains(id))
+                .map(userId -> {
+                    User userRef = entityManager.getReference(User.class, userId);
+                    return ClassParticipant.builder()
+                            .user(userRef)
+                            .clazz(classroom)
+                            .joinedAt(LocalDateTime.now())
+                            .build();
+                })
+                .toList();
 
-                participantRepository.save(participant);
-            }
-        }
+        participantRepository.saveAll(participants);
     }
 
     @Override
