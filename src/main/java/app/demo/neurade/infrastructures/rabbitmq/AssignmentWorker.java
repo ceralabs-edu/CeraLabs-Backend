@@ -56,9 +56,9 @@ public class AssignmentWorker {
             job.setStatus(JobStatus.COMPLETED);
             jobStatusService.saveJob(job);
 
-            log.info("Completed ChatbotChatJob with ID: {}", job.getJobId());
+            log.info("Completed AssignmentJob with ID: {}", job.getJobId());
         } catch (Exception e) {
-            log.error("Error processing ChatbotChatJob with ID: {}", job.getJobId(), e);
+            log.error("Error processing AssignmentJob with ID: {}", job.getJobId(), e);
             job.setStatus(JobStatus.FAILED);
             job.setErrorMessage(e.getMessage());
             jobStatusService.saveJob(job);
