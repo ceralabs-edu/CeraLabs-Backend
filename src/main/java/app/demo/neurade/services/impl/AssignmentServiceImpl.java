@@ -18,10 +18,14 @@ import app.demo.neurade.services.FileService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +38,7 @@ public class AssignmentServiceImpl implements AssignmentService {
     private final AssignmentOcrClient ocrClient;
     private final FileService fileService;
     private final AssignmentQuestionPersistenceService assignmentQuestionPersistenceService;
+    private final Executor questionExecutor;
 
     @Override
     @Transactional
@@ -67,23 +72,40 @@ public class AssignmentServiceImpl implements AssignmentService {
         ExtractResponse response = ocrClient.callExtract(file);
         log.info("Received OCR response with {} questions", response.getQuestions().size());
 
-        List<AssignmentQuestion> result = new ArrayList<>();
+//        List<AssignmentQuestion> result = new ArrayList<>();
 
-        for (var entry : response.getQuestions().entrySet()) {
-            String key = entry.getKey();
-            List<ExtractResponse.QuestionRegionDTO> regions = entry.getValue();
+//        for (var entry : response.getQuestions().entrySet()) {
+//            String key = entry.getKey();
+//            List<ExtractResponse.QuestionRegionDTO> regions = entry.getValue();
+//
+//            if (!isValidQuestionRegion(key, regions)) {
+//                continue;
+//            }
+//
+//            ExtractResponse.QuestionRegionDTO region = regions.getFirst();
+//
+//            AssignmentQuestion question = processQuestionEntry(key, region, response);
+//            if (question != null) {
+//                result.add(question);
+//            }
+//        }
 
-            if (!isValidQuestionRegion(key, regions)) {
-                continue;
-            }
+        List<CompletableFuture<AssignmentQuestion>> futures = response.getQuestions().entrySet().stream()
+                        .map(entry ->
+                            CompletableFuture.supplyAsync(() -> {
+                                String key = entry.getKey();
+                                List<ExtractResponse.QuestionRegionDTO> regions = entry.getValue();
 
-            ExtractResponse.QuestionRegionDTO region = regions.getFirst();
+                                if (!isValidQuestionRegion(key, regions)) return null;
+                                return processQuestionEntry(key, regions.getFirst(), response);
+                            }, questionExecutor)
+                        ).toList();
 
-            AssignmentQuestion question = processQuestionEntry(key, region, response);
-            if (question != null) {
-                result.add(question);
-            }
-        }
+        List<AssignmentQuestion> result = futures
+                .stream()
+                .map(CompletableFuture::join)
+                .filter(Objects::nonNull)
+                .toList();
 
         assignmentQuestionPersistenceService.saveAssignmentWithQuestions(
                 assignment,
