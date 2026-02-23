@@ -1,12 +1,6 @@
 package app.demo.neurade.security;
 
-import app.demo.neurade.domain.models.Role;
-import app.demo.neurade.domain.models.RoleType;
-import app.demo.neurade.domain.models.User;
-import app.demo.neurade.domain.models.UserInformation;
-import app.demo.neurade.infrastructures.repositories.UserInformationRepository;
-import app.demo.neurade.infrastructures.repositories.UserRepository;
-import jakarta.persistence.EntityManager;
+import app.demo.neurade.services.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
@@ -30,9 +24,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
     private final UserDetailsService userDetailsService;
     private final JwtService jwtService;
-    private final EntityManager entityManager;
-    private final UserRepository userRepository;
-    private final UserInformationRepository userInformationRepository;
+    private final UserService userService;
     private final CookieService cookieService;
     @Value("${application.frontend.url}")
     private String frontendUrl;
@@ -63,35 +55,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     }
 
     private void findOrCreateUser(String email, OAuth2User oauth2User) {
-        userRepository.findByEmail(email)
-                .ifPresentOrElse(
-                        user -> log.info("User {} already exists", email),
-                        () -> {
-                            Role roleRef = entityManager.getReference(
-                                    Role.class,
-                                    RoleType.STUDENT.getRoleId()
-                            );
-
-                            User newUser = User.builder()
-                                    .email(email)
-                                    .password("")
-                                    .role(roleRef)
-                                    .verified(oauth2User.getAttribute("email_verified"))
-                                    .build();
-
-                            UserInformation info = UserInformation.builder()
-                                    .user(newUser)
-                                    .firstName(oauth2User.getAttribute("given_name"))
-                                    .lastName(oauth2User.getAttribute("family_name"))
-                                    .avatarImage(oauth2User.getAttribute("picture"))
-                                    .build();
-
-                            userRepository.save(newUser);
-                            userInformationRepository.save(info);
-
-                            log.info("User {} registered successfully", email);
-                        }
-                );
+        userService.createUserFromOAuth(email, oauth2User);
     }
 
     private List<String> generateTokens(String email) {
