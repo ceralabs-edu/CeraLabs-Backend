@@ -1,6 +1,6 @@
 package app.demo.neurade.domain.dtos;
 
-import app.demo.neurade.domain.rabbitmq.JobStatus;
+import app.demo.neurade.domain.dtos.messages.MessageStatus;
 import lombok.*;
 
 import java.util.UUID;
@@ -12,7 +12,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class ChatbotChatJobDTO {
     private UUID jobId;
-    private JobStatus status;
+    private MessageStatus status;
     private String errorMessage;
     private ChatResponseDTO response;
 }

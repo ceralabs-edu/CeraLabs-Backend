@@ -1,4 +1,4 @@
-package app.demo.neurade.domain.rabbitmq;
+package app.demo.neurade.domain.dtos.messages;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
@@ -10,19 +10,19 @@ import java.util.UUID;
 @AllArgsConstructor
 @Getter
 @Setter
-public class AssignmentJob implements RabbitJob {
-    private UUID jobId;
+public class AssignmentMessage implements RabbitMessage {
+    private UUID id;
     private Long userId;
     private String answerImageUrl;
     private String apiKey;
     private UUID questionId;
     private String errorMessage;
-    private JobStatus status;
+    private MessageStatus status;
     private String response;
 
     @Override
     @JsonIgnore
-    public String getJobPrefix() {
-        return "assignment:job:";
+    public String getPrefix() {
+        return "assignment:";
     }
 }

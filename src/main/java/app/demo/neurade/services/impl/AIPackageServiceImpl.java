@@ -14,7 +14,6 @@ import app.demo.neurade.infrastructures.repositories.ClassRepository;
 import app.demo.neurade.infrastructures.repositories.PeopleManagementRepository;
 import app.demo.neurade.services.AIPackageInstanceService;
 import app.demo.neurade.services.AIPackageService;
-import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +36,6 @@ public class AIPackageServiceImpl implements AIPackageService {
     private final AIPackageInstanceRepository aiPackageInstanceRepository;
     private final RestTemplate restTemplate;
     private final Mapper mapper;
-    private final EntityManager entityManager;
     private final AIPackageInstanceService aIPackageInstanceService;
 
     @Value("${llm.validate.endpoint}")
@@ -88,7 +86,7 @@ public class AIPackageServiceImpl implements AIPackageService {
 
         log.info("User {} had {} existing AI Package instances removed", buyer.getEmail(), existed);
 
-        entityManager.flush();
+        aiPackageInstanceRepository.flush();
 
         log.info("EntityManager flushed to ensure deletion is executed before creating new instance");
 
@@ -140,7 +138,7 @@ public class AIPackageServiceImpl implements AIPackageService {
 
         log.info("Class {} had {} existing AI Package instances removed", classId, existed);
 
-        entityManager.flush();
+        aiPackageInstanceRepository.flush();
 
         log.info("EntityManager flushed to ensure deletion is executed before creating new instance");
 

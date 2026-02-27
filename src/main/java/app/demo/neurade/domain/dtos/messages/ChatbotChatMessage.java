@@ -1,4 +1,4 @@
-package app.demo.neurade.domain.rabbitmq;
+package app.demo.neurade.domain.dtos.messages;
 
 import app.demo.neurade.domain.dtos.ChatResponseDTO;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -11,9 +11,9 @@ import java.util.UUID;
 @AllArgsConstructor
 @Getter
 @Setter
-public class ChatbotChatJob implements RabbitJob {
-    private UUID jobId;
-    private JobStatus status;
+public class ChatbotChatMessage implements RabbitMessage {
+    private UUID id;
+    private MessageStatus status;
     private Long userId;
     private UUID instanceId;
     private String conversationId;
@@ -26,7 +26,7 @@ public class ChatbotChatJob implements RabbitJob {
 
     @Override
     @JsonIgnore
-    public String getJobPrefix() {
-        return "chatbot:chat:job:";
+    public String getPrefix() {
+        return "chatbot:chat:";
     }
 }

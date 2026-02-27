@@ -4,8 +4,8 @@ import app.demo.neurade.configs.RabbitMQConfig;
 import app.demo.neurade.domain.models.StudentAnswer;
 import app.demo.neurade.domain.models.User;
 import app.demo.neurade.domain.models.assignment.AssignmentQuestion;
-import app.demo.neurade.domain.rabbitmq.AssignmentJob;
-import app.demo.neurade.domain.rabbitmq.JobStatus;
+import app.demo.neurade.domain.dtos.messages.AssignmentMessage;
+import app.demo.neurade.domain.dtos.messages.MessageStatus;
 import app.demo.neurade.infrastructures.repositories.AssignmentQuestionRepository;
 import app.demo.neurade.infrastructures.repositories.StudentAnswerRepository;
 import app.demo.neurade.services.AssignmentJudgeService;
@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
-import java.util.concurrent.*;
 
 @Slf4j
 @Service
@@ -51,13 +50,13 @@ public class AssignmentJudgeServiceImpl implements AssignmentJudgeService {
             log.info("Uploaded answer image to URL: {}", imageUrl);
             String newJobId = UUID.randomUUID().toString();
 
-            AssignmentJob job = AssignmentJob.builder()
-                    .jobId(UUID.fromString(newJobId))
+            AssignmentMessage job = AssignmentMessage.builder()
+                    .id(UUID.fromString(newJobId))
                     .userId(user.getId())
                     .answerImageUrl(imageUrl)
                     .apiKey(apiKey)
                     .questionId(questionId)
-                    .status(JobStatus.QUEUED)
+                    .status(MessageStatus.QUEUED)
                     .build();
 
             jobStatusService.saveJob(job);
@@ -116,7 +115,7 @@ public class AssignmentJudgeServiceImpl implements AssignmentJudgeService {
     }
 
     @Override
-    public AssignmentJob getAssignmentJob(UUID jobId) {
-        return jobStatusService.getJob(jobId, AssignmentJob.class);
+    public AssignmentMessage getAssignmentJob(UUID jobId) {
+        return jobStatusService.getJob(jobId, AssignmentMessage.class);
     }
 }

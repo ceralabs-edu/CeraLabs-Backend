@@ -1,6 +1,8 @@
 package app.demo.neurade.services.impl;
 
+import app.demo.neurade.configs.RabbitMQConfig;
 import app.demo.neurade.domain.dtos.UserAndInfoDTO;
+import app.demo.neurade.domain.dtos.messages.UserCreatedMessage;
 import app.demo.neurade.domain.dtos.requests.PatchUserRequest;
 import app.demo.neurade.domain.mappers.Mapper;
 import app.demo.neurade.domain.models.RoleType;
@@ -23,6 +25,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
@@ -30,11 +33,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
+import app.demo.neurade.domain.dtos.messages.MessageStatus;
 import java.beans.PropertyDescriptor;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -50,6 +55,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final EntityManager entityManager;
     private final Mapper mapper;
+    private final RabbitTemplate rabbitTemplate;
 
     @Override
     @Transactional
@@ -175,6 +181,10 @@ public class UserServiceImpl implements UserService {
         infoRepository.save(userInfo);
 
         log.info("User {} created successfully with full information", user.getEmail());
+
+        // Publish user created message to RabbitMQ
+        publishUserCreatedMessage(user, UserCreatedMessage.UserCreationSource.REGISTRATION);
+
         return user;
     }
 
@@ -207,6 +217,37 @@ public class UserServiceImpl implements UserService {
         infoRepository.save(info);
 
         log.info("User {} registered successfully via OAuth", email);
+
+        // Publish user created message to RabbitMQ
+        publishUserCreatedMessage(newUser, UserCreatedMessage.UserCreationSource.OAUTH);
+
         return newUser;
+    }
+
+    /**
+     * Helper method to publish user created message to RabbitMQ
+     */
+    private void publishUserCreatedMessage(User user, UserCreatedMessage.UserCreationSource source) {
+        try {
+            UserCreatedMessage message = UserCreatedMessage.builder()
+                    .id(UUID.randomUUID())
+                    .status(MessageStatus.QUEUED)
+                    .userId(user.getId())
+                    .email(user.getEmail())
+                    .roleId(user.getRole().getId())
+                    .source(source)
+                    .build();
+
+            rabbitTemplate.convertAndSend(
+                    RabbitMQConfig.USER_CREATED_EXCHANGE,
+                    RabbitMQConfig.USER_CREATED_ROUTING_KEY,
+                    message
+            );
+
+            log.info("Published user created message for user: {} to RabbitMQ", user.getEmail());
+        } catch (Exception e) {
+            log.error("Failed to publish user created message for user: {}", user.getEmail(), e);
+            // Don't throw exception - user creation should not fail if message publishing fails
+        }
     }
 }

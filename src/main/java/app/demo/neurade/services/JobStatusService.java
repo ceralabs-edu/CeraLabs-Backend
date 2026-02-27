@@ -1,10 +1,10 @@
 package app.demo.neurade.services;
 
-import app.demo.neurade.domain.rabbitmq.RabbitJob;
+import app.demo.neurade.domain.dtos.messages.RabbitMessage;
 
 import java.util.UUID;
 
 public interface JobStatusService {
-    void saveJob(RabbitJob job);
-    <T extends RabbitJob> T getJob(UUID jobId, Class<T> jobClass);
+    void saveJob(RabbitMessage job);
+    <T extends RabbitMessage> T getJob(UUID jobId, Class<T> jobClass);
 }

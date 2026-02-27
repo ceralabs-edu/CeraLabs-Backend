@@ -9,4 +9,5 @@ public interface AIPackageInstanceService {
     AIPackageInstanceDTO getInstanceById(UUID instanceId);
     UserAIInstanceUsage createUsageRecord(UserInstanceUsageCreationRequest req);
     AIPackageInstanceDTO getInstanceForUser(Long userId, Long classId);
+    void createFreeInstanceForUser(Long userId);
 }

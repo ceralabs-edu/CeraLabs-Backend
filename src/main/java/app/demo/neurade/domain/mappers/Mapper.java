@@ -6,8 +6,8 @@ import app.demo.neurade.domain.models.assignment.AssignmentQuestion;
 import app.demo.neurade.domain.models.chatbot.Conversation;
 import app.demo.neurade.domain.models.chatbot.QAEntry;
 import app.demo.neurade.domain.models.chatbot.QuestionAsset;
-import app.demo.neurade.domain.rabbitmq.AssignmentJob;
-import app.demo.neurade.domain.rabbitmq.ChatbotChatJob;
+import app.demo.neurade.domain.dtos.messages.AssignmentMessage;
+import app.demo.neurade.domain.dtos.messages.ChatbotChatMessage;
 import app.demo.neurade.infrastructures.chatbot_llm.responses.VerifyKeyResponse;
 import app.demo.neurade.domain.models.*;
 import lombok.RequiredArgsConstructor;
@@ -187,21 +187,21 @@ public class Mapper {
                 .build();
     }
 
-    public ChatbotChatJobDTO toDto(ChatbotChatJob chatbotChatJob) {
+    public ChatbotChatJobDTO toDto(ChatbotChatMessage chatbotChatMessage) {
         return ChatbotChatJobDTO.builder()
-                .jobId(chatbotChatJob.getJobId())
-                .status(chatbotChatJob.getStatus())
-                .errorMessage(chatbotChatJob.getErrorMessage())
-                .response(chatbotChatJob.getResponse())
+                .jobId(chatbotChatMessage.getId())
+                .status(chatbotChatMessage.getStatus())
+                .errorMessage(chatbotChatMessage.getErrorMessage())
+                .response(chatbotChatMessage.getResponse())
                 .build();
     }
 
-    public AssignmentJobDTO toDto(AssignmentJob assignmentJob) {
+    public AssignmentJobDTO toDto(AssignmentMessage assignmentMessage) {
         return AssignmentJobDTO.builder()
-                .jobId(assignmentJob.getJobId())
-                .status(assignmentJob.getStatus())
-                .errorMessage(assignmentJob.getErrorMessage())
-                .response(assignmentJob.getResponse())
+                .jobId(assignmentMessage.getId())
+                .status(assignmentMessage.getStatus())
+                .errorMessage(assignmentMessage.getErrorMessage())
+                .response(assignmentMessage.getResponse())
                 .build();
     }
 }
