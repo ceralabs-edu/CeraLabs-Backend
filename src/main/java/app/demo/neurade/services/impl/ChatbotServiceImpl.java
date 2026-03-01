@@ -7,8 +7,8 @@ import app.demo.neurade.domain.mappers.Mapper;
 import app.demo.neurade.domain.models.User;
 import app.demo.neurade.domain.models.chatbot.Conversation;
 import app.demo.neurade.domain.models.chatbot.QAEntry;
-import app.demo.neurade.domain.rabbitmq.ChatbotChatJob;
-import app.demo.neurade.domain.rabbitmq.JobStatus;
+import app.demo.neurade.domain.dtos.messages.ChatbotChatMessage;
+import app.demo.neurade.domain.dtos.messages.MessageStatus;
 import app.demo.neurade.infrastructures.repositories.ConversationRepository;
 import app.demo.neurade.infrastructures.repositories.QAEntryRepository;
 import app.demo.neurade.services.ChatbotService;
@@ -68,7 +68,7 @@ public class ChatbotServiceImpl implements ChatbotService {
                 files
         );
 
-        ChatbotChatJob chatJob = createNewChatJob(
+        ChatbotChatMessage chatJob = createNewChatJob(
                 user,
                 prepareResult.instanceId(),
                 prepareResult.conversation().getId(),
@@ -78,7 +78,7 @@ public class ChatbotServiceImpl implements ChatbotService {
                 prepareResult.assetUrls()
         );
 
-        chatJob.setStatus(JobStatus.QUEUED);
+        chatJob.setStatus(MessageStatus.QUEUED);
         jobStatusService.saveJob(chatJob);
 
         rabbitTemplate.convertAndSend(
@@ -87,11 +87,11 @@ public class ChatbotServiceImpl implements ChatbotService {
                 chatJob
         );
 
-        log.info("Enqueued ChatbotChatJob with ID: {}", chatJob.getJobId());
-        return chatJob.getJobId();
+        log.info("Enqueued ChatbotChatJob with ID: {}", chatJob.getId());
+        return chatJob.getId();
     }
 
-    private ChatbotChatJob createNewChatJob(
+    private ChatbotChatMessage createNewChatJob(
             User user,
             UUID instanceId,
             String conversationId,
@@ -100,8 +100,8 @@ public class ChatbotServiceImpl implements ChatbotService {
             String question,
             List<String> fileUrls
     ) {
-        return ChatbotChatJob.builder()
-                .jobId(UUID.randomUUID())
+        return ChatbotChatMessage.builder()
+                .id(UUID.randomUUID())
                 .userId(user.getId())
                 .instanceId(instanceId)
                 .conversationId(conversationId)
@@ -113,7 +113,7 @@ public class ChatbotServiceImpl implements ChatbotService {
     }
 
     @Override
-    public ChatbotChatJob getChatJobStatus(UUID jobId) {
-        return jobStatusService.getJob(jobId, ChatbotChatJob.class);
+    public ChatbotChatMessage getChatJobStatus(UUID jobId) {
+        return jobStatusService.getJob(jobId, ChatbotChatMessage.class);
     }
 }

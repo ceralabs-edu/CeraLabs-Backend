@@ -9,6 +9,7 @@ import app.demo.neurade.domain.models.AIPackageInstance;
 import app.demo.neurade.domain.models.User;
 import app.demo.neurade.domain.models.UserAIInstanceUsage;
 import app.demo.neurade.infrastructures.repositories.AIPackageInstanceRepository;
+import app.demo.neurade.infrastructures.repositories.AIPackageRepository;
 import app.demo.neurade.infrastructures.repositories.ParticipantRepository;
 import app.demo.neurade.infrastructures.repositories.UserInstanceUsageRepository;
 import app.demo.neurade.infrastructures.repositories.UserRepository;
@@ -18,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,7 +27,11 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class AIPackageInstanceServiceImpl implements AIPackageInstanceService {
+
+    private static final String FREE_PACKAGE_NAME = "Starter AI Package";
+
     private final AIPackageInstanceRepository instanceRepository;
+    private final AIPackageRepository aiPackageRepository;
     private final Mapper mapper;
     private final UserRepository userRepository;
     private final UserInstanceUsageRepository userInstanceUsageRepository;
@@ -101,5 +107,39 @@ public class AIPackageInstanceServiceImpl implements AIPackageInstanceService {
         }
 
         return mapper.toDto(instance);
+    }
+
+    @Override
+    @Transactional
+    public void createFreeInstanceForUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+
+        AIPackage freePackage = aiPackageRepository.findByName(FREE_PACKAGE_NAME)
+                .orElseThrow(() -> new RuntimeException(
+                        "Free AI package '" + FREE_PACKAGE_NAME + "' not found. " +
+                        "Make sure it is seeded in the database."
+                ));
+
+        log.info("Creating free AI instance '{}' for user: {}", FREE_PACKAGE_NAME, user.getEmail());
+
+        AIPackageInstance instance = AIPackageInstance.builder()
+                .aiPackage(freePackage)
+                .buyer(user)
+                .purchaseDate(LocalDateTime.now())
+                .expiryDate(LocalDateTime.now().plusDays(freePackage.getDurationInDays()))
+                .remainingToken(freePackage.getTotalToken())
+                .build();
+
+        instance = instanceRepository.save(instance);
+
+        log.info("Free AI instance created with ID: {} for user: {}", instance.getId(), user.getEmail());
+
+        createUsageRecord(UserInstanceUsageCreationRequest.builder()
+                .instanceId(instance.getId())
+                .userId(userId)
+                .build());
+
+        log.info("Usage record created for free AI instance for user: {}", user.getEmail());
     }
 }

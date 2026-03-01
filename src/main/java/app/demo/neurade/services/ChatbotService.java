@@ -3,7 +3,7 @@ package app.demo.neurade.services;
 import app.demo.neurade.domain.dtos.ChatHistoryEntryDTO;
 import app.demo.neurade.domain.models.User;
 import app.demo.neurade.domain.models.chatbot.Conversation;
-import app.demo.neurade.domain.rabbitmq.ChatbotChatJob;
+import app.demo.neurade.domain.dtos.messages.ChatbotChatMessage;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -18,7 +18,7 @@ public interface ChatbotService {
             List<MultipartFile> files
     );
 
-    ChatbotChatJob getChatJobStatus(UUID jobId);
+    ChatbotChatMessage getChatJobStatus(UUID jobId);
 
     List<ChatHistoryEntryDTO> getChatHistory(String conversationId);
 

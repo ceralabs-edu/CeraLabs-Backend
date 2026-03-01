@@ -22,6 +22,11 @@ public class RabbitMQConfig {
     public static final String ASSIGNMENT_EXCHANGE = "assignment.judge.exchange";
     public static final String ASSIGNMENT_ROUTING_KEY = "assignment.judge";
 
+    public static final String USER_CREATED_QUEUE = "user.created.queue";
+    public static final String USER_CREATED_DLQ = "user.created.dlq";
+    public static final String USER_CREATED_EXCHANGE = "user.created.exchange";
+    public static final String USER_CREATED_ROUTING_KEY = "user.created";
+
     @Bean
     public JacksonJsonMessageConverter messageConverter() {
         return new JacksonJsonMessageConverter();
@@ -88,6 +93,32 @@ public class RabbitMQConfig {
         return BindingBuilder.bind(assignmentQueue)
                 .to(assignmentExchange)
                 .with(ASSIGNMENT_ROUTING_KEY)
+                .noargs();
+    }
+
+    @Bean
+    public Queue userCreatedQueue() {
+        return QueueBuilder.durable(USER_CREATED_QUEUE)
+                .withArgument("x-dead-letter-exchange", "")
+                .withArgument("x-dead-letter-routing-key", USER_CREATED_DLQ)
+                .build();
+    }
+
+    @Bean
+    public Queue userCreatedDLQ() {
+        return QueueBuilder.durable(USER_CREATED_DLQ).build();
+    }
+
+    @Bean
+    public Exchange userCreatedExchange() {
+        return new DirectExchange(USER_CREATED_EXCHANGE);
+    }
+
+    @Bean
+    public Binding userCreatedBinding(Queue userCreatedQueue, Exchange userCreatedExchange) {
+        return BindingBuilder.bind(userCreatedQueue)
+                .to(userCreatedExchange)
+                .with(USER_CREATED_ROUTING_KEY)
                 .noargs();
     }
 }

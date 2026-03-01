@@ -1,9 +1,9 @@
-INSERT INTO roles (name, priority)
+INSERT INTO roles (id, name, priority)
 VALUES
-    ('ROLE_ADMIN', 0),
-    ('ROLE_ORGANIZATION', 1),
-    ('ROLE_TEACHER', 2),
-    ('ROLE_STUDENT', 3);
+    (1, 'ROLE_ADMIN', 0),
+    (2, 'ROLE_ORGANIZATION', 1),
+    (3, 'ROLE_TEACHER', 2),
+    (4, 'ROLE_STUDENT', 3);
 
 -- =====================================================
 -- RAW ADDRESS (TEMP)

@@ -1,6 +1,6 @@
 package app.demo.neurade.services.impl;
 
-import app.demo.neurade.domain.rabbitmq.RabbitJob;
+import app.demo.neurade.domain.dtos.messages.RabbitMessage;
 import app.demo.neurade.services.JobStatusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -17,17 +17,17 @@ public class JobStatusServiceImpl implements JobStatusService {
     private final RedisTemplate<String, Object> redisTemplate;
 
     @Override
-    public void saveJob(RabbitJob job) {
-        String key = job.getJobPrefix() + job.getJobId();
+    public void saveJob(RabbitMessage job) {
+        String key = job.getPrefix() + job.getId();
         redisTemplate.opsForValue().set(key, job, TTL);
     }
 
     @Override
-    public <T extends RabbitJob> T getJob(UUID jobId, Class<T> jobClass) {
+    public <T extends RabbitMessage> T getJob(UUID jobId, Class<T> jobClass) {
         String key;
         try {
             T tempInstance = jobClass.getDeclaredConstructor().newInstance();
-            key = tempInstance.getJobPrefix() + jobId;
+            key = tempInstance.getPrefix() + jobId;
             return jobClass.cast(redisTemplate.opsForValue().get(key));
         } catch (Exception e) {
             throw new RuntimeException("Failed to create job instance: " + e.getMessage(), e);
