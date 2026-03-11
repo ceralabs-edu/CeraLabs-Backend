@@ -100,12 +100,6 @@ public class UserServiceImpl implements UserService {
         return users;
     }
 
-    public List<User> getUsersUnderManagementByEmail(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
-        return getUsersUnderManagement(user);
-    }
-
     @Override
     public UserAndInfoDTO getUserAndInfo(Long id) {
         User user = userRepository.findById(id)
@@ -175,7 +169,6 @@ public class UserServiceImpl implements UserService {
                 .addressDetail(req.getAddressDetail())
                 .dateOfBirth(req.getDateOfBirth())
                 .favoriteSubjects(req.getFavoriteSubjects())
-                .avatarImage(req.getAvatarUrl())
                 .build();
 
         infoRepository.save(userInfo);

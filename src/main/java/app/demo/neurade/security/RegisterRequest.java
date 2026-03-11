@@ -28,6 +28,5 @@ public class RegisterRequest {
     private List<String> favoriteSubjects;
     private String bio;
     private LocalDate dateOfBirth;
-    private String avatarUrl;
 }
 
