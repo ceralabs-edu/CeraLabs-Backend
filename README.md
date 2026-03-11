@@ -1,6 +1,6 @@
-# Neurade Backend — Spring Boot
+# CeraLabs Backend — Spring Boot
 
-A RESTful backend for **Neurade**, an AI-assisted e-learning platform that supports classroom management, AI-powered chatbot tutoring, automated assignment grading via OCR, and AI package subscriptions.
+A RESTful backend for **CeraLabs**, an AI-assisted e-learning platform that supports classroom management, AI-powered chatbot tutoring, automated assignment grading via OCR, and AI package subscriptions.
 
 ---
 
@@ -22,7 +22,7 @@ A RESTful backend for **Neurade**, an AI-assisted e-learning platform that suppo
 
 ## Project Overview
 
-Neurade is a platform targeting teachers, organizations, and students. It provides:
+CeraLabs is a platform targeting teachers, organizations, and students. It provides:
 
 - **Classroom Management** — create classes, invite participants, manage assignments
 - **AI Chatbot** — async Q&A powered by a configurable LLM (default: Gemini), with file upload support
@@ -65,8 +65,8 @@ Chatbot messages and assignment grading are dispatched asynchronously via Rabbit
 Backend-Springboot/
 ├── ci/
 │   └── data.csv                        # Seed data for provinces/communes
-├── src/main/java/app/demo/neurade/
-│   ├── NeuradeApplication.java
+├── src/main/java/app/demo/CeraLabs/
+│   ├── CeraLabsApplication.java
 │   ├── configs/                        # Spring configurations
 │   │   ├── MinioConfig.java
 │   │   ├── OpenApiConfig.java
@@ -230,16 +230,16 @@ cp .env.example .env
 |---|---|---|
 | `DB_HOST` | PostgreSQL host | `postgres` (Docker) / `localhost` (local) |
 | `DB_PORT` | PostgreSQL port | `5432` |
-| `DB_NAME` | Database name | `neurade` |
+| `DB_NAME` | Database name | `CeraLabs` |
 | `DB_USERNAME` | DB username | `postgres` |
 | `DB_PASSWORD` | DB password | `secret` |
 | `MINIO_HOST` | MinIO server host | `minio.example.com` |
 | `MINIO_PORT` | MinIO server port | `9010` |
 | `MINIO_ACCESS` | MinIO access key | — |
 | `MINIO_SECRET` | MinIO secret key | — |
-| `MINIO_BUCKET_PFP` | Bucket for profile pictures | `neurade-pfp` |
-| `MINIO_BUCKET_CHAT` | Bucket for chat attachments | `neurade-chat` |
-| `MINIO_BUCKET_ASSIGNMENT` | Bucket for assignment files | `neurade-assignment` |
+| `MINIO_BUCKET_PFP` | Bucket for profile pictures | `CeraLabs-pfp` |
+| `MINIO_BUCKET_CHAT` | Bucket for chat attachments | `CeraLabs-chat` |
+| `MINIO_BUCKET_ASSIGNMENT` | Bucket for assignment files | `CeraLabs-assignment` |
 | `REDIS_HOST` | Redis host | `redis` (Docker) / `localhost` (local) |
 | `REDIS_PORT` | Redis port | `6379` |
 | `RABBITMQ_HOST` | RabbitMQ host | `rabbitmq` (Docker) / `localhost` (local) |
@@ -384,7 +384,7 @@ docker compose down -v
 
 ```yaml
 app:
-  image: bananaonthetree/backend-neurade:0.0.8  # uncomment this line
+  image: bananaonthetree/backend-CeraLabs:0.0.8  # uncomment this line
   # build: .                                     # comment this line
 ```
 
@@ -400,7 +400,7 @@ docker compose up -d
 
 ```bash
 ./mvnw clean package -DskipTests
-java -jar target/neurade-0.0.1-SNAPSHOT.jar
+java -jar target/CeraLabs-0.0.1-SNAPSHOT.jar
 ```
 
 Make sure all environment variables are set in the shell or passed with `-D` flags.
