@@ -5,6 +5,7 @@ import app.demo.neurade.domain.dtos.requests.TokenUsageLimit;
 import app.demo.neurade.domain.dtos.requests.UserInstanceUsageCreationRequest;
 import app.demo.neurade.domain.dtos.requests.ModifyAIPackageInstanceRequest;
 import app.demo.neurade.domain.mappers.Mapper;
+import app.demo.neurade.domain.mappers.AIPackageInstanceMapper;
 import app.demo.neurade.domain.models.AIPackage;
 import app.demo.neurade.domain.models.AIPackageInstance;
 import app.demo.neurade.domain.models.User;
@@ -37,6 +38,7 @@ public class AIPackageInstanceServiceImpl implements AIPackageInstanceService {
     private final UserRepository userRepository;
     private final UserInstanceUsageRepository userInstanceUsageRepository;
     private final ParticipantRepository participantRepository;
+    private final AIPackageInstanceMapper aiPackageInstanceMapper;
 
     @Override
     @Transactional
@@ -150,19 +152,7 @@ public class AIPackageInstanceServiceImpl implements AIPackageInstanceService {
         AIPackageInstance instance = instanceRepository.findById(instanceId)
                 .orElseThrow(() -> new RuntimeException("AI Package Instance not found with id: " + instanceId));
 
-        if (req.getAiPackageId() != null) {
-            AIPackage aiPackage = aiPackageRepository.findById(req.getAiPackageId())
-                    .orElseThrow(() -> new RuntimeException("AI Package not found with id: " + req.getAiPackageId()));
-            instance.setAiPackage(aiPackage);
-        }
-        if (req.getExpiryDate() != null) {
-            instance.setExpiryDate(req.getExpiryDate());
-        }
-        if (req.getRemainingToken() != null) {
-            instance.setRemainingToken(req.getRemainingToken().longValue());
-        }
-        // Add more fields as needed
-
+        aiPackageInstanceMapper.patchInstance(req, instance);
         instanceRepository.save(instance);
         return mapper.toDto(instance);
     }
