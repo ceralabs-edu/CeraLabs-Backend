@@ -29,6 +29,15 @@ public class AIPackageInstance {
     )
     private AIPackage aiPackage;
 
+    public enum Status {
+        ACTIVE,
+        INACTIVE
+    }
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private Status status;
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(
             name = "class_id",
@@ -52,6 +61,13 @@ public class AIPackageInstance {
 
     @Column(name = "expiry_date", nullable = false)
     private LocalDateTime expiryDate;
+
+    @PrePersist
+    public void onCreate() {
+        if (this.status == null) {
+            this.status = Status.ACTIVE;
+        }
+    }
 
     public void deductTokens(Long tokens) {
         if (tokens <= 0) {
