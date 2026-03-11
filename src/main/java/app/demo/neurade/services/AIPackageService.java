@@ -16,4 +16,5 @@ public interface AIPackageService {
     AIPackage getPackageById(Integer packageId);
     List<AIPackage> getAllPackages();
     void modifyPackage(Integer packageId, AIPackageModificationRequest req);
+    AIPackage setInactive(Integer packageId);
 }

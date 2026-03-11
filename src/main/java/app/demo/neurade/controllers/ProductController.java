@@ -126,4 +126,28 @@ public class ProductController {
             )
         );
     }
+
+    @DeleteMapping("/ai-package/{packageId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteAIPackage(@PathVariable Integer packageId) {
+        var updated = aiPackageService.setInactive(packageId);
+        return ResponseEntity.ok(
+            Map.of(
+                "message", "AI Package deleted successfully",
+                "data", mapper.toDto(updated)
+            )
+        );
+    }
+
+    @DeleteMapping("/ai-package/instance/{instanceId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteAIPackageInstance(@PathVariable String instanceId) {
+        var updated = aiPackageInstanceService.setInactive(UUID.fromString(instanceId));
+        return ResponseEntity.ok(
+            Map.of(
+                "message", "AI Package Instance deleted successfully",
+                "data", updated
+            )
+        );
+    }
 }
