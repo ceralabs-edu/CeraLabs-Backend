@@ -1,9 +1,6 @@
 package app.demo.neurade.controllers;
 
-import app.demo.neurade.domain.dtos.requests.AIPackageCreationRequest;
-import app.demo.neurade.domain.dtos.requests.AIPackagePurchaseRequest;
-import app.demo.neurade.domain.dtos.requests.GetInstanceForUserRequest;
-import app.demo.neurade.domain.dtos.requests.ValidateKeyRequest;
+import app.demo.neurade.domain.dtos.requests.*;
 import app.demo.neurade.domain.mappers.Mapper;
 import app.demo.neurade.domain.models.AIPackage;
 import app.demo.neurade.security.CustomUserDetails;
@@ -96,6 +93,20 @@ public class ProductController {
         CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ResponseEntity.ok(
                 aiPackageInstanceService.getInstanceForUser(userDetails.getUser().getId(), req.getClassId())
+        );
+    }
+
+    @PatchMapping("/ai-package/{packageId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> updateAIPackage(
+            @PathVariable Integer packageId,
+            @Valid @RequestBody AIPackageModificationRequest req
+    ) {
+        aiPackageService.modifyPackage(packageId, req);
+        return ResponseEntity.ok(
+                Map.of(
+                        "message", "AI Package updated successfully"
+                )
         );
     }
 }
