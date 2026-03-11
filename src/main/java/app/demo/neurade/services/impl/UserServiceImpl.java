@@ -5,13 +5,13 @@ import app.demo.neurade.domain.dtos.UserAndInfoDTO;
 import app.demo.neurade.domain.dtos.messages.UserCreatedMessage;
 import app.demo.neurade.domain.dtos.requests.PatchUserRequest;
 import app.demo.neurade.domain.mappers.Mapper;
+import app.demo.neurade.domain.mappers.UserInformationMapper;
 import app.demo.neurade.domain.models.RoleType;
 import app.demo.neurade.domain.models.User;
 import app.demo.neurade.domain.models.UserInformation;
 import app.demo.neurade.domain.models.Role;
 import app.demo.neurade.domain.models.Province;
 import app.demo.neurade.domain.models.Commune;
-import app.demo.neurade.exception.UnauthorizedException;
 import app.demo.neurade.infrastructures.repositories.PeopleManagementRepository;
 import app.demo.neurade.infrastructures.repositories.UserInformationRepository;
 import app.demo.neurade.infrastructures.repositories.UserRepository;
@@ -26,18 +26,14 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.BeanWrapper;
-import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 import app.demo.neurade.domain.dtos.messages.MessageStatus;
-import java.beans.PropertyDescriptor;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -56,33 +52,20 @@ public class UserServiceImpl implements UserService {
     private final EntityManager entityManager;
     private final Mapper mapper;
     private final RabbitTemplate rabbitTemplate;
+    private final UserInformationMapper userInformationMapper;
 
     @Override
     @Transactional
-    public UserInformation updateUserInfo(User currentUser, String email, PatchUserRequest req) {
-        if (!currentUser.getRole().isRoleType(RoleType.ADMIN) && !currentUser.getEmail().equals(email)) {
-            throw new UnauthorizedException("You are not authorized to update this user's information");
-        }
-        UserInformation info = infoRepository.findByUserEmail(email)
+    public UserInformation updateUserInfo(User user, PatchUserRequest req) {
+        UserInformation info = infoRepository.findByUser_Id(user.getId())
                 .orElseThrow(() -> new EntityNotFoundException("User information not found"));
 
-        BeanUtils.copyProperties(req, info, getNullPropertyNames(req));
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        userInformationMapper.patchUserInfo(req, info);
 
         user.setUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
 
         return infoRepository.save(info);
-    }
-
-    private String[] getNullPropertyNames(Object source) {
-        BeanWrapper src = new BeanWrapperImpl(source);
-        return Arrays.stream(src.getPropertyDescriptors())
-                .map(PropertyDescriptor::getName)
-                .filter(name -> src.getPropertyValue(name) == null)
-                .toArray(String[]::new);
     }
 
     @Override

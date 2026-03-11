@@ -28,12 +28,12 @@ public class UserController {
     private final Mapper mapper;
 
     @Operation(summary = "Update user information", description = "Update user profile information")
-    @PatchMapping("/{email}")
-    public ResponseEntity<?> updateUser(@PathVariable String email, @RequestBody PatchUserRequest req) {
+    @PatchMapping("/profile")
+    public ResponseEntity<?> updateUser(@RequestBody PatchUserRequest req) {
         CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (userDetails == null) throw new UnauthorizedException("Unauthorized");
-        User currentUser = userDetails.getUser();
-        UserInformation info = userService.updateUserInfo(currentUser, email, req);
+        User user = userDetails.getUser();
+        UserInformation info = userService.updateUserInfo(user, req);
         return ResponseEntity.ok(
                 Map.of(
                         "message", "User information updated successfully",
