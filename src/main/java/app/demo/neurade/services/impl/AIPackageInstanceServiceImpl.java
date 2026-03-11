@@ -156,4 +156,14 @@ public class AIPackageInstanceServiceImpl implements AIPackageInstanceService {
         instanceRepository.save(instance);
         return mapper.toDto(instance);
     }
+
+    @Override
+    @Transactional
+    public AIPackageInstanceDTO setInactive(UUID instanceId) {
+        var instance = instanceRepository.findById(instanceId)
+            .orElseThrow(() -> new RuntimeException("AI Package Instance not found with id: " + instanceId));
+        instance.setStatus(AIPackageInstance.Status.INACTIVE);
+        instanceRepository.save(instance);
+        return mapper.toDto(instance);
+    }
 }

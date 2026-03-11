@@ -200,4 +200,15 @@ public class AIPackageServiceImpl implements AIPackageService {
         aiPackageMapper.updateAIPackageFromDto(req, aiPackage);
         aiPackageRepository.save(aiPackage);
     }
+
+    @Override
+    @Transactional
+    public AIPackage setInactive(Integer packageId) {
+        AIPackage aiPackage = aiPackageRepository.findById(packageId)
+                .orElseThrow(() -> new RuntimeException("AI Package not found with id: " + packageId));
+        aiPackage.setStatus(AIPackage.Status.INACTIVE);
+        aiPackageRepository.save(aiPackage);
+        log.info("AI Package with ID: {} has been set to inactive", packageId);
+        return aiPackage;
+    }
 }

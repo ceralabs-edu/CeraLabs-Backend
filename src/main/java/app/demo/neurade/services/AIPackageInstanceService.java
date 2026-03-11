@@ -12,4 +12,5 @@ public interface AIPackageInstanceService {
     AIPackageInstanceDTO getInstanceForUser(Long userId, Long classId);
     void createFreeInstanceForUser(Long userId);
     AIPackageInstanceDTO modifyInstance(UUID instanceId, ModifyAIPackageInstanceRequest req);
+    AIPackageInstanceDTO setInactive(UUID instanceId);
 }
