@@ -3,6 +3,7 @@ package app.demo.neurade.services;
 import app.demo.neurade.domain.dtos.AIPackageInstanceDTO;
 import app.demo.neurade.domain.dtos.ValidateKeyDTO;
 import app.demo.neurade.domain.dtos.requests.AIPackageCreationRequest;
+import app.demo.neurade.domain.dtos.requests.AIPackageModificationRequest;
 import app.demo.neurade.domain.models.AIPackage;
 import app.demo.neurade.domain.models.User;
 
@@ -14,4 +15,5 @@ public interface AIPackageService {
     ValidateKeyDTO validateApiKey(String apiKey, String provider);
     AIPackage getPackageById(Integer packageId);
     List<AIPackage> getAllPackages();
+    void modifyPackage(Integer packageId, AIPackageModificationRequest req);
 }
