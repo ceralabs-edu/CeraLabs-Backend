@@ -10,7 +10,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import java.util.List;
 
 public interface UserService {
-    UserInformation updateUserInfo(User user, String email, PatchUserRequest req);
+    UserInformation updateUserInfo(User user, PatchUserRequest req);
     List<User> getUsersUnderManagement(User user);
     UserAndInfoDTO getUserAndInfo(Long id);
     List<UserAndInfoDTO> getAllUsersAndInfo();
