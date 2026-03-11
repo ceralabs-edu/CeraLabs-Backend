@@ -79,6 +79,7 @@ public class Mapper {
                 .remainingToken(aiPackageInstance.getRemainingToken())
                 .totalToken(aiPackage.getTotalToken())
                 .purchaseDate(aiPackageInstance.getPurchaseDate())
+                .status(aiPackageInstance.getStatus())
                 .expiryDate(aiPackageInstance.getExpiryDate());
 
         if (aiPackageInstance.getClassRoom() != null) {
