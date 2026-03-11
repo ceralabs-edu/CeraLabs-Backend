@@ -3,6 +3,7 @@ package app.demo.neurade.services.impl;
 import app.demo.neurade.domain.dtos.AIPackageInstanceDTO;
 import app.demo.neurade.domain.dtos.requests.TokenUsageLimit;
 import app.demo.neurade.domain.dtos.requests.UserInstanceUsageCreationRequest;
+import app.demo.neurade.domain.dtos.requests.ModifyAIPackageInstanceRequest;
 import app.demo.neurade.domain.mappers.Mapper;
 import app.demo.neurade.domain.models.AIPackage;
 import app.demo.neurade.domain.models.AIPackageInstance;
@@ -141,5 +142,28 @@ public class AIPackageInstanceServiceImpl implements AIPackageInstanceService {
                 .build());
 
         log.info("Usage record created for free AI instance for user: {}", user.getEmail());
+    }
+
+    @Override
+    @Transactional
+    public AIPackageInstanceDTO modifyInstance(UUID instanceId, ModifyAIPackageInstanceRequest req) {
+        AIPackageInstance instance = instanceRepository.findById(instanceId)
+                .orElseThrow(() -> new RuntimeException("AI Package Instance not found with id: " + instanceId));
+
+        if (req.getAiPackageId() != null) {
+            AIPackage aiPackage = aiPackageRepository.findById(req.getAiPackageId())
+                    .orElseThrow(() -> new RuntimeException("AI Package not found with id: " + req.getAiPackageId()));
+            instance.setAiPackage(aiPackage);
+        }
+        if (req.getExpiryDate() != null) {
+            instance.setExpiryDate(req.getExpiryDate());
+        }
+        if (req.getRemainingToken() != null) {
+            instance.setRemainingToken(req.getRemainingToken().longValue());
+        }
+        // Add more fields as needed
+
+        instanceRepository.save(instance);
+        return mapper.toDto(instance);
     }
 }

@@ -15,6 +15,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/product")
@@ -107,6 +108,22 @@ public class ProductController {
                 Map.of(
                         "message", "AI Package updated successfully"
                 )
+        );
+    }
+
+    @PatchMapping("/ai-package/instance/{instanceId}")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ORGANIZATION', 'ADMIN')")
+    public ResponseEntity<?> updateAIPackageInstance(
+            @PathVariable String instanceId,
+            @RequestBody ModifyAIPackageInstanceRequest req
+    ) {
+        return ResponseEntity.ok(
+            Map.of(
+                "message", "AI Package Instance updated successfully",
+                "data", aiPackageInstanceService.modifyInstance(
+                    UUID.fromString(instanceId), req
+                )
+            )
         );
     }
 }
