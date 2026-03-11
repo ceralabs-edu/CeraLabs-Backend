@@ -1,5 +1,6 @@
 package app.demo.neurade.domain.dtos;
 
+import app.demo.neurade.domain.models.AIPackage;
 import lombok.*;
 
 
@@ -17,4 +18,5 @@ public class AIPackageDTO {
     private Double price;
     private Long tokenRateLimit;
     private Integer durationInDays;
+    private AIPackage.Status status;
 }

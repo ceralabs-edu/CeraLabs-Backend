@@ -98,6 +98,7 @@ public class Mapper {
                 .model(aiPackage.getModel())
                 .durationInDays(aiPackage.getDurationInDays())
                 .description(aiPackage.getDescription())
+                .status(aiPackage.getStatus())
                 .build();
     }
 
