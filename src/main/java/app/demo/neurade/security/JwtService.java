@@ -1,5 +1,7 @@
 package app.demo.neurade.security;
 
+import app.demo.neurade.domain.models.JwtAccessToken;
+import app.demo.neurade.infrastructures.repositories.JwtAccessTokenRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -26,6 +28,8 @@ public class JwtService {
 
     @Value("${application.security.jwt.refresh-token.expiration}")
     private long refreshExpiration;
+
+    private final JwtAccessTokenRepository jwtAccessTokenRepository;
 
     private String buildToken(
             Map<String, Object> extraClaims,
@@ -68,7 +72,11 @@ public class JwtService {
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
         String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+        if (!username.equals(userDetails.getUsername()) || isTokenExpired(token)) {
+            return false;
+        }
+        var tokenOpt = jwtAccessTokenRepository.findByToken(token);
+        return tokenOpt.isPresent() && tokenOpt.get().getStatus() == JwtAccessToken.Status.ACTIVE;
     }
 
     public String generateToken(
@@ -81,5 +89,9 @@ public class JwtService {
             UserDetails userDetails
     ) {
         return buildToken(Map.of(), userDetails, refreshExpiration);
+    }
+
+    public long getJwtExpirationSeconds() {
+        return jwtExpiration / 1000;
     }
 }
