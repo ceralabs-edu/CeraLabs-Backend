@@ -1,8 +1,8 @@
 package app.demo.neurade.services.impl;
 
-import app.demo.neurade.configs.RabbitMQConfig;
 import app.demo.neurade.domain.dtos.UserAndInfoDTO;
 import app.demo.neurade.domain.dtos.messages.UserCreatedMessage;
+import app.demo.neurade.domain.dtos.messages.MessageStatus;
 import app.demo.neurade.domain.dtos.requests.PatchUserRequest;
 import app.demo.neurade.domain.mappers.Mapper;
 import app.demo.neurade.domain.mappers.UserInformationMapper;
@@ -20,6 +20,9 @@ import app.demo.neurade.infrastructures.repositories.ProvinceRepository;
 import app.demo.neurade.infrastructures.repositories.CommuneRepository;
 import app.demo.neurade.security.RegisterRequest;
 import app.demo.neurade.services.UserService;
+import app.demo.neurade.services.UserPersistenceService;
+import app.demo.neurade.services.UserAndInfoParams;
+import app.demo.neurade.configs.RabbitMQConfig;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -29,8 +32,8 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
-
-import app.demo.neurade.domain.dtos.messages.MessageStatus;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -53,9 +56,9 @@ public class UserServiceImpl implements UserService {
     private final Mapper mapper;
     private final RabbitTemplate rabbitTemplate;
     private final UserInformationMapper userInformationMapper;
+    private final UserPersistenceService userPersistenceService;
 
     @Override
-    @Transactional
     public UserInformation updateUserInfo(User user, PatchUserRequest req) {
         UserInformation info = infoRepository.findByUser_Id(user.getId())
                 .orElseThrow(() -> new EntityNotFoundException("User information not found"));
@@ -118,15 +121,6 @@ public class UserServiceImpl implements UserService {
                     return new IllegalArgumentException("Role not found with id: " + req.getRoleId());
                 });
 
-        // Create new user
-        User user = User.builder()
-                .email(req.getEmail())
-                .password(passwordEncoder.encode(req.getPassword()))
-                .role(role)
-                .build();
-
-        user = userRepository.save(user);
-
         // Find province and commune
         Province city = provinceRepository.findByCode(req.getCityCode())
                 .orElseThrow(() -> {
@@ -139,13 +133,14 @@ public class UserServiceImpl implements UserService {
                     return new IllegalArgumentException("Commune not found with code: " + req.getSubDistrictCode());
                 });
 
-        // Create new user information
-        UserInformation userInfo = UserInformation.builder()
-                .user(user)
+        UserAndInfoParams params = UserAndInfoParams.builder()
+                .email(req.getEmail())
+                .password(passwordEncoder.encode(req.getPassword()))
+                .role(role)
                 .firstName(req.getFirstName())
                 .lastName(req.getLastName())
                 .city(city)
-                .subDistrict(commune)
+                .commune(commune)
                 .bio(req.getBio())
                 .school(req.getSchool())
                 .grade(req.getGrade())
@@ -154,12 +149,8 @@ public class UserServiceImpl implements UserService {
                 .favoriteSubjects(req.getFavoriteSubjects())
                 .build();
 
-        infoRepository.save(userInfo);
-
+        User user = userPersistenceService.createUserAndInfo(params);
         log.info("User {} created successfully with full information", user.getEmail());
-
-        // Publish user created message to RabbitMQ
-        publishUserCreatedMessage(user, UserCreatedMessage.UserCreationSource.REGISTRATION);
 
         return user;
     }
@@ -175,34 +166,24 @@ public class UserServiceImpl implements UserService {
 
         Role roleRef = entityManager.getReference(Role.class, RoleType.STUDENT.getRoleId());
 
-        User newUser = User.builder()
+        UserAndInfoParams params = UserAndInfoParams.builder()
                 .email(email)
                 .password("")
                 .role(roleRef)
-                .verified(oauth2User.getAttribute("email_verified"))
-                .build();
-
-        UserInformation info = UserInformation.builder()
-                .user(newUser)
                 .firstName(oauth2User.getAttribute("given_name"))
                 .lastName(oauth2User.getAttribute("family_name"))
                 .avatarImage(oauth2User.getAttribute("picture"))
+                .verified(oauth2User.getAttribute("email_verified"))
                 .build();
 
-        userRepository.save(newUser);
-        infoRepository.save(info);
+        User user = userPersistenceService.createUserAndInfo(params);
 
         log.info("User {} registered successfully via OAuth", email);
 
-        // Publish user created message to RabbitMQ
-        publishUserCreatedMessage(newUser, UserCreatedMessage.UserCreationSource.OAUTH);
-
-        return newUser;
+        publishUserCreatedMessage(user, UserCreatedMessage.UserCreationSource.OAUTH);
+        return user;
     }
 
-    /**
-     * Helper method to publish user created message to RabbitMQ
-     */
     private void publishUserCreatedMessage(User user, UserCreatedMessage.UserCreationSource source) {
         try {
             UserCreatedMessage message = UserCreatedMessage.builder()
@@ -214,16 +195,28 @@ public class UserServiceImpl implements UserService {
                     .source(source)
                     .build();
 
-            rabbitTemplate.convertAndSend(
-                    RabbitMQConfig.USER_CREATED_EXCHANGE,
-                    RabbitMQConfig.USER_CREATED_ROUTING_KEY,
-                    message
-            );
-
-            log.info("Published user created message for user: {} to RabbitMQ", user.getEmail());
+            if (TransactionSynchronizationManager.isSynchronizationActive()) {
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        rabbitTemplate.convertAndSend(
+                                RabbitMQConfig.USER_CREATED_EXCHANGE,
+                                RabbitMQConfig.USER_CREATED_ROUTING_KEY,
+                                message
+                        );
+                        log.info("Published user created message for user: {} to RabbitMQ (after commit)", user.getEmail());
+                    }
+                });
+            } else {
+                rabbitTemplate.convertAndSend(
+                        RabbitMQConfig.USER_CREATED_EXCHANGE,
+                        RabbitMQConfig.USER_CREATED_ROUTING_KEY,
+                        message
+                );
+                log.info("Published user created message for user: {} to RabbitMQ (no transaction)", user.getEmail());
+            }
         } catch (Exception e) {
             log.error("Failed to publish user created message for user: {}", user.getEmail(), e);
-            // Don't throw exception - user creation should not fail if message publishing fails
         }
     }
 }
