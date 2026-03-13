@@ -16,8 +16,6 @@ import app.demo.neurade.infrastructures.repositories.PeopleManagementRepository;
 import app.demo.neurade.infrastructures.repositories.UserInformationRepository;
 import app.demo.neurade.infrastructures.repositories.UserRepository;
 import app.demo.neurade.infrastructures.repositories.RoleRepository;
-import app.demo.neurade.infrastructures.repositories.ProvinceRepository;
-import app.demo.neurade.infrastructures.repositories.CommuneRepository;
 import app.demo.neurade.security.RegisterRequest;
 import app.demo.neurade.services.UserService;
 import app.demo.neurade.services.UserPersistenceService;
@@ -49,8 +47,6 @@ public class UserServiceImpl implements UserService {
     private final UserInformationRepository infoRepository;
     private final PeopleManagementRepository peopleManagementRepository;
     private final RoleRepository roleRepository;
-    private final ProvinceRepository provinceRepository;
-    private final CommuneRepository communeRepository;
     private final PasswordEncoder passwordEncoder;
     private final EntityManager entityManager;
     private final Mapper mapper;
@@ -121,17 +117,8 @@ public class UserServiceImpl implements UserService {
                     return new IllegalArgumentException("Role not found with id: " + req.getRoleId());
                 });
 
-        // Find province and commune
-        Province city = provinceRepository.findByCode(req.getCityCode())
-                .orElseThrow(() -> {
-                    log.warn("City code {} cannot be found", req.getCityCode());
-                    return new IllegalArgumentException("Province not found with code: " + req.getCityCode());
-                });
-        Commune commune = communeRepository.findByCode(req.getSubDistrictCode())
-                .orElseThrow(() -> {
-                    log.warn("Sub district code {} cannot be found", req.getSubDistrictCode());
-                    return new IllegalArgumentException("Commune not found with code: " + req.getSubDistrictCode());
-                });
+        Province city = entityManager.getReference(Province.class, req.getCityCode());
+        Commune commune = entityManager.getReference(Commune.class, req.getSubDistrictCode());
 
         UserAndInfoParams params = UserAndInfoParams.builder()
                 .email(req.getEmail())
