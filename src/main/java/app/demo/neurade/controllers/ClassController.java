@@ -8,7 +8,6 @@ import app.demo.neurade.domain.dtos.requests.ClassCreationRequest;
 import app.demo.neurade.domain.dtos.requests.UserInstanceUsageCreationRequest;
 import app.demo.neurade.domain.mappers.Mapper;
 import app.demo.neurade.domain.models.Classroom;
-import app.demo.neurade.exception.UnauthorizedException;
 import app.demo.neurade.security.CustomUserDetails;
 import app.demo.neurade.services.AssignmentService;
 import app.demo.neurade.services.ClassService;
@@ -84,8 +83,6 @@ public class ClassController {
                         .getAuthentication()
                         .getPrincipal();
 
-        if (userDetails == null) throw new UnauthorizedException("Unauthorized");
-
         Classroom newClass =
                 classService.createClass(userDetails.getUser(), req);
 
@@ -105,8 +102,6 @@ public class ClassController {
                         .getContext()
                         .getAuthentication()
                         .getPrincipal();
-
-        if (userDetails == null) throw new UnauthorizedException("Unauthorized");
 
         return ResponseEntity.ok(
                 classService.getAllClassesUnderManagement(userDetails.getUser())

@@ -5,7 +5,6 @@ import app.demo.neurade.domain.dtos.requests.PatchUserRequest;
 import app.demo.neurade.domain.mappers.Mapper;
 import app.demo.neurade.domain.models.User;
 import app.demo.neurade.domain.models.UserInformation;
-import app.demo.neurade.exception.UnauthorizedException;
 import app.demo.neurade.security.CustomUserDetails;
 import app.demo.neurade.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,7 +31,6 @@ public class UserController {
     @PatchMapping("/profile")
     public ResponseEntity<?> updateUser(@RequestBody PatchUserRequest req) {
         CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (userDetails == null) throw new UnauthorizedException("Unauthorized");
         User user = userDetails.getUser();
         UserInformation info = userService.updateUserInfo(user, req);
         return ResponseEntity.ok(
@@ -47,7 +45,6 @@ public class UserController {
     @Operation(summary = "Get users under management", description = "Retrieve a list of users under the management of the current user")
     public ResponseEntity<?> getUsersUnderManagement() {
         CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (userDetails == null) throw new UnauthorizedException("Unauthorized");
         List<UserDTO> users = userService.getUsersUnderManagement(userDetails.getUser())
                 .stream()
                 .map(mapper::toDto)
@@ -71,7 +68,6 @@ public class UserController {
     @GetMapping("/profile")
     public ResponseEntity<?> getCurrentUserProfile() {
         CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (userDetails == null) throw new UnauthorizedException("Unauthorized");
         User user = userDetails.getUser();
         return ResponseEntity.ok(
                 userService.getUserAndInfo(user.getId())
