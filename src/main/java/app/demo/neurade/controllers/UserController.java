@@ -4,7 +4,6 @@ import app.demo.neurade.domain.dtos.UserDTO;
 import app.demo.neurade.domain.dtos.requests.PatchUserRequest;
 import app.demo.neurade.domain.mappers.Mapper;
 import app.demo.neurade.domain.models.User;
-import app.demo.neurade.domain.models.UserInformation;
 import app.demo.neurade.security.CustomUserDetails;
 import app.demo.neurade.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,11 +31,10 @@ public class UserController {
     public ResponseEntity<?> updateUser(@RequestBody PatchUserRequest req) {
         CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User user = userDetails.getUser();
-        UserInformation info = userService.updateUserInfo(user, req);
+        userService.updateUserInfo(user, req);
         return ResponseEntity.ok(
                 Map.of(
-                        "message", "User information updated successfully",
-                        "data", mapper.toDto(info)
+                        "message", "User information updated successfully"
                 )
         );
     }

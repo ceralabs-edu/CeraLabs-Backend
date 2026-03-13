@@ -55,16 +55,16 @@ public class UserServiceImpl implements UserService {
     private final UserPersistenceService userPersistenceService;
 
     @Override
-    public UserInformation updateUserInfo(User user, PatchUserRequest req) {
+    public boolean updateUserInfo(User user, PatchUserRequest req) {
         UserInformation info = infoRepository.findByUser_Id(user.getId())
                 .orElseThrow(() -> new EntityNotFoundException("User information not found"));
 
         userInformationMapper.patchUserInfo(req, info);
 
         user.setUpdatedAt(LocalDateTime.now());
-        userRepository.save(user);
+        userRepository.save(user); // DM TRIGGER
 
-        return infoRepository.save(info);
+        return true;
     }
 
     @Override
