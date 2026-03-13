@@ -1,6 +1,9 @@
 package app.demo.neurade.security;
 
 import app.demo.neurade.services.UserService;
+import app.demo.neurade.infrastructures.repositories.UserRepository;
+import app.demo.neurade.domain.models.User;
+import app.demo.neurade.services.JwtAccessTokenService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
@@ -26,6 +29,11 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final JwtService jwtService;
     private final UserService userService;
     private final CookieService cookieService;
+    private final UserRepository userRepository;
+    private final JwtAccessTokenService jwtAccessTokenService;
+    // Flag to control whether to disable old tokens on OAuth2 login
+    @Value("${application.security.disable-old-token-on-oauth2-login:false}")
+    private boolean disableOldTokenOnLogin;
     @Value("${application.frontend.url}")
     private String frontendUrl;
 
@@ -49,6 +57,18 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         findOrCreateUser(email, oauth2User);
 
         List<String> tokens = generateTokens(email);
+        // Save access token to DB, optionally disabling old tokens
+        var userOpt = userRepository.findByEmail(email);
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            String accessToken = tokens.getFirst();
+            jwtAccessTokenService.saveNewTokenForUser(
+                user,
+                accessToken,
+                disableOldTokenOnLogin,
+                jwtService.getJwtExpirationSeconds()
+            );
+        }
         cookieService.setTokenCookies(response, tokens.get(0), tokens.get(1));
 
         response.sendRedirect(frontendUrl + "/");

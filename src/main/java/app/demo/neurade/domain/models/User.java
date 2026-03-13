@@ -40,6 +40,16 @@ public class User {
     @Column(name = "otp_id")
     private Long otpId;
 
+    public enum UserStatus {
+        ACTIVE,
+        SUSPENDED,
+        DELETED
+    }
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private UserStatus status;
+
     @PrePersist
     protected void onCreate() {
         LocalDateTime now = LocalDateTime.now();
@@ -47,6 +57,9 @@ public class User {
         this.updatedAt = now;
         if (this.verified == null) {
             this.verified = false;
+        }
+        if (this.status == null) {
+            this.status = UserStatus.ACTIVE;
         }
     }
 
