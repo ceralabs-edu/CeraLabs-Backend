@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -60,9 +61,20 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getUser(@PathVariable String userId) {
         return ResponseEntity.ok(
                 userService.getUserAndInfo(Long.parseLong(userId))
+        );
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<?> getCurrentUserProfile() {
+        CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (userDetails == null) throw new UnauthorizedException("Unauthorized");
+        User user = userDetails.getUser();
+        return ResponseEntity.ok(
+                userService.getUserAndInfo(user.getId())
         );
     }
 }
