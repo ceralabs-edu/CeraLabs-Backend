@@ -4,6 +4,7 @@ import app.demo.neurade.domain.dtos.requests.*;
 import app.demo.neurade.domain.mappers.Mapper;
 import app.demo.neurade.domain.models.AIPackage;
 import app.demo.neurade.security.CustomUserDetails;
+import app.demo.neurade.security.RequireVerified;
 import app.demo.neurade.services.AIPackageInstanceService;
 import app.demo.neurade.services.AIPackageService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -47,7 +48,8 @@ public class ProductController {
     }
 
     @PostMapping("/ai-package/purchase")
-    @PreAuthorize("hasAnyRole('ADMIN', 'ORGANIZATION', 'TEACHER')" )
+//    @PreAuthorize("hasAnyRole('ADMIN', 'ORGANIZATION', 'TEACHER')" )
+    @RequireVerified
     public ResponseEntity<?> purchaseAIPackage(@RequestBody AIPackagePurchaseRequest req) {
         CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ResponseEntity.ok(
