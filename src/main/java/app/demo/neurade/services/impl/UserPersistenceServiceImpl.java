@@ -6,10 +6,9 @@ import app.demo.neurade.infrastructures.repositories.UserInformationRepository;
 import app.demo.neurade.infrastructures.repositories.UserRepository;
 import app.demo.neurade.services.UserAndInfoParams;
 import app.demo.neurade.services.UserPersistenceService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -18,7 +17,7 @@ public class UserPersistenceServiceImpl implements UserPersistenceService {
     private final UserInformationRepository infoRepository;
 
     @Override
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional
     public User createUserAndInfo(UserAndInfoParams params) {
         User user = User.builder()
                 .email(params.getEmail())
