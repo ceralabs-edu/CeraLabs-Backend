@@ -1,5 +1,6 @@
 package app.demo.neurade.domain.dtos;
 
+import app.demo.neurade.domain.models.AIPackageInstance;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -19,4 +20,5 @@ public class AIPackageInstanceDTO {
     private Long totalToken;
     private LocalDateTime purchaseDate;
     private LocalDateTime expiryDate;
+    private AIPackageInstance.Status status;
 }

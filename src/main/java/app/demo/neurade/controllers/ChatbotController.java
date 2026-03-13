@@ -2,8 +2,8 @@ package app.demo.neurade.controllers;
 
 import app.demo.neurade.domain.dtos.requests.ChatRequest;
 import app.demo.neurade.domain.mappers.Mapper;
-import app.demo.neurade.exception.UnauthorizedException;
 import app.demo.neurade.security.CustomUserDetails;
+import app.demo.neurade.security.RequireVerified;
 import app.demo.neurade.services.ChatbotService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -26,6 +26,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/chatbot")
 @RequiredArgsConstructor
+@RequireVerified
 @Tag(name = "Chatbot", description = "Chatbot interaction APIs")
 public class ChatbotController {
 
@@ -69,7 +70,6 @@ public class ChatbotController {
                 .getAuthentication()
                 .getPrincipal();
 
-        if (userDetails == null) throw new UnauthorizedException("Unauthorized");
         UUID jobId = chatbotService.enqueueChat(
                 userDetails.getUser(),
                 request.getInstanceId(),
@@ -110,8 +110,6 @@ public class ChatbotController {
                 .getContext()
                 .getAuthentication()
                 .getPrincipal();
-
-        if (userDetails == null) throw new UnauthorizedException("Unauthorized");
 
         return ResponseEntity.ok(
                 chatbotService.getUserConversations(userDetails.getUser().getId())

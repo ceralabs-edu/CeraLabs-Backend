@@ -38,10 +38,22 @@ public class Classroom {
     @Column(name = "update_date", nullable = false)
     private LocalDateTime updateDate;
 
+    public enum Status {
+        ACTIVE,
+        DELETED
+    }
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private Status status;
+
     @PrePersist
     public void onCreate() {
         this.creationDate = LocalDateTime.now();
         this.updateDate = LocalDateTime.now();
+        if (this.status == null) {
+            this.status = Status.ACTIVE;
+        }
     }
 
     @PreUpdate

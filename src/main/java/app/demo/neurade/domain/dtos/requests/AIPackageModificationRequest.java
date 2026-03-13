@@ -1,21 +1,24 @@
-package app.demo.neurade.domain.dtos;
+package app.demo.neurade.domain.dtos.requests;
 
 import app.demo.neurade.domain.models.AIPackage;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+import java.util.List;
 
-@Builder
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class AIPackageDTO {
-    private Integer id;
+public class AIPackageModificationRequest {
     private String name;
     private String model;
     private String description;
-    private Long totalToken;
     private Double price;
+    private List<String> apiKeys;
+    private Long totalToken;
     private Long tokenRateLimit;
     private Integer durationInDays;
     private AIPackage.Status status;

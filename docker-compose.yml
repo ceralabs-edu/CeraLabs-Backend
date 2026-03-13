@@ -13,7 +13,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./ci/data.csv:/docker-entrypoint-initdb.d/data.csv
     networks:
-      - app-network
+      - ceralabs-network
 
   redis:
     image: redis:7-alpine
@@ -25,7 +25,7 @@ services:
       - redis_data:/data
     command: redis-server --appendonly yes
     networks:
-      - app-network
+      - ceralabs-network
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -39,14 +39,14 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
+      start_period: 90s
     networks:
-      - app-network
+      - ceralabs-network
 
-  app:
+  ceralabs-backend:
     build: .
 #    image: bananaonthetree/backend-neurade:0.0.12
-    container_name: neurade-app
+    container_name: ceralabs-backend
     restart: always
     ports:
       - "${SERVER_OUTER_PORT}:8080"
@@ -109,10 +109,24 @@ services:
       rabbitmq:
         condition: service_healthy
     networks:
-      - app-network
+      - ceralabs-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: neurade-nginx
+    ports:
+      - "${NGINX_OUTER_PORT}:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - ceralabs-backend
+    networks:
+      - ceralabs-network
+    env_file:
+      - .env
 
 networks:
-  app-network:
+  ceralabs-network:
     driver: bridge
 
 volumes:
