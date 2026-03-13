@@ -3,6 +3,7 @@ package app.demo.neurade.controllers;
 import app.demo.neurade.domain.mappers.Mapper;
 import app.demo.neurade.exception.UnauthorizedException;
 import app.demo.neurade.security.CustomUserDetails;
+import app.demo.neurade.security.RequireVerified;
 import app.demo.neurade.services.AssignmentJudgeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
+@RequireVerified
 @RequestMapping("/api/v1/assignment")
 public class AssignmentController {
 
