@@ -1,6 +1,11 @@
 package app.demo.neurade.controllers;
 
-import app.demo.neurade.domain.dtos.requests.*;
+import app.demo.neurade.domain.dtos.requests.AIPackageCreationRequest;
+import app.demo.neurade.domain.dtos.requests.AIPackagePurchaseRequest;
+import app.demo.neurade.domain.dtos.requests.GetInstanceForUserRequest;
+import app.demo.neurade.domain.dtos.requests.ValidateKeyRequest;
+import app.demo.neurade.domain.dtos.requests.ModifyAIPackageInstanceRequest;
+import app.demo.neurade.domain.dtos.requests.AIPackageModificationRequest;
 import app.demo.neurade.domain.mappers.Mapper;
 import app.demo.neurade.domain.models.AIPackage;
 import app.demo.neurade.security.CustomUserDetails;
