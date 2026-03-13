@@ -1,6 +1,5 @@
 package app.demo.neurade.controllers;
 
-import app.demo.neurade.domain.dtos.JwtAccessTokenDTO;
 import app.demo.neurade.domain.dtos.requests.ChangeUserPasswordRequest;
 import app.demo.neurade.domain.dtos.requests.ChangeUserRoleRequest;
 import app.demo.neurade.domain.mappers.JwtAccessTokenMapper;
@@ -58,12 +57,10 @@ public class AdminController {
 
     @DeleteMapping("/jwt-token/{token}")
     public ResponseEntity<?> deleteJwtToken(@PathVariable String token) {
-        var updated = jwtAccessTokenService.revokeTokenByValue(token);
-        JwtAccessTokenDTO dto = jwtAccessTokenMapper.toDto(updated);
+        jwtAccessTokenService.revokeTokenByValue(token);
         return ResponseEntity.ok(
             Map.of(
-                "message", "JWT access token revoked successfully",
-                "data", dto
+                "message", "JWT access token revoked successfully"
             )
         );
     }

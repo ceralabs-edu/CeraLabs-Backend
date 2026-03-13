@@ -17,14 +17,14 @@ public class JwtAccessTokenServiceImpl implements JwtAccessTokenService {
 
     @Override
     @Transactional
-    public JwtAccessToken revokeTokenByValue(String tokenValue) {
+    public boolean revokeTokenByValue(String tokenValue) {
         JwtAccessToken token = jwtAccessTokenRepository.findByToken(tokenValue).orElseThrow();
         if (token.getStatus() != JwtAccessToken.Status.ACTIVE) {
-            return token; // Already inactive, no need to update
+            return false; // Already inactive, no need to update
         }
         token.setStatus(JwtAccessToken.Status.INACTIVE);
         token.setRevokedAt(LocalDateTime.now());
-        return jwtAccessTokenRepository.save(token);
+        return true;
     }
 
     @Override
