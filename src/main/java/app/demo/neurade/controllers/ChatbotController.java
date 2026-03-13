@@ -2,7 +2,6 @@ package app.demo.neurade.controllers;
 
 import app.demo.neurade.domain.dtos.requests.ChatRequest;
 import app.demo.neurade.domain.mappers.Mapper;
-import app.demo.neurade.exception.UnauthorizedException;
 import app.demo.neurade.security.CustomUserDetails;
 import app.demo.neurade.security.RequireVerified;
 import app.demo.neurade.services.ChatbotService;
@@ -71,7 +70,6 @@ public class ChatbotController {
                 .getAuthentication()
                 .getPrincipal();
 
-        if (userDetails == null) throw new UnauthorizedException("Unauthorized");
         UUID jobId = chatbotService.enqueueChat(
                 userDetails.getUser(),
                 request.getInstanceId(),
@@ -112,8 +110,6 @@ public class ChatbotController {
                 .getContext()
                 .getAuthentication()
                 .getPrincipal();
-
-        if (userDetails == null) throw new UnauthorizedException("Unauthorized");
 
         return ResponseEntity.ok(
                 chatbotService.getUserConversations(userDetails.getUser().getId())
