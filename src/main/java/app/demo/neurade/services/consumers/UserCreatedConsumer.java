@@ -1,6 +1,6 @@
 package app.demo.neurade.services.consumers;
 
-import app.demo.neurade.configs.RabbitMQConfig;
+import app.demo.neurade.configs.UserCreatedRabbitConfig;
 import app.demo.neurade.domain.dtos.messages.UserCreatedMessage;
 import app.demo.neurade.services.AIPackageInstanceService;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,7 @@ public class UserCreatedConsumer {
 
     private final AIPackageInstanceService aiPackageInstanceService;
 
-    @RabbitListener(queues = RabbitMQConfig.USER_CREATED_QUEUE)
+    @RabbitListener(queues = UserCreatedRabbitConfig.USER_CREATED_INSTANCE_CREATION_QUEUE)
     public void handleUserCreated(UserCreatedMessage message) {
         log.info("Received user created message for user: {} (source: {})",
                 message.getEmail(), message.getSource());

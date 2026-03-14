@@ -1,6 +1,6 @@
 package app.demo.neurade.services.impl;
 
-import app.demo.neurade.configs.RabbitMQConfig;
+import app.demo.neurade.configs.ChatbotRabbitConfig;
 import app.demo.neurade.domain.dtos.ChatHistoryEntryDTO;
 import app.demo.neurade.domain.dtos.ChatPrepareDTO;
 import app.demo.neurade.domain.mappers.Mapper;
@@ -82,8 +82,8 @@ public class ChatbotServiceImpl implements ChatbotService {
         jobStatusService.saveJob(chatJob);
 
         rabbitTemplate.convertAndSend(
-                RabbitMQConfig.CHATBOT_EXCHANGE,
-                RabbitMQConfig.CHATBOT_ROUTING_KEY,
+                ChatbotRabbitConfig.CHATBOT_EXCHANGE,
+                ChatbotRabbitConfig.CHATBOT_ROUTING_KEY,
                 chatJob
         );
 

@@ -1,6 +1,6 @@
 package app.demo.neurade.services.impl;
 
-import app.demo.neurade.configs.RabbitMQConfig;
+import app.demo.neurade.configs.UserCreatedRabbitConfig;
 import app.demo.neurade.domain.dtos.UserAndInfoDTO;
 import app.demo.neurade.domain.dtos.messages.UserCreatedMessage;
 import app.demo.neurade.domain.dtos.requests.PatchUserRequest;
@@ -232,8 +232,8 @@ public class UserServiceImpl implements UserService {
                     .build();
 
             rabbitTemplate.convertAndSend(
-                    RabbitMQConfig.USER_CREATED_EXCHANGE,
-                    RabbitMQConfig.USER_CREATED_ROUTING_KEY,
+                    UserCreatedRabbitConfig.USER_CREATED_EXCHANGE,
+                    "", // Use default routing key since we're using a fanout exchange
                     message
             );
 

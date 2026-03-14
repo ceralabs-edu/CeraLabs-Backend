@@ -1,6 +1,6 @@
 package app.demo.neurade.services.impl;
 
-import app.demo.neurade.configs.RabbitMQConfig;
+import app.demo.neurade.configs.AssignmentRabbitConfig;
 import app.demo.neurade.domain.models.StudentAnswer;
 import app.demo.neurade.domain.models.User;
 import app.demo.neurade.domain.models.assignment.AssignmentQuestion;
@@ -64,8 +64,8 @@ public class AssignmentJudgeServiceImpl implements AssignmentJudgeService {
             results.put(entry.getKey(), newJobId);
 
             rabbitTemplate.convertAndSend(
-                    RabbitMQConfig.ASSIGNMENT_EXCHANGE,
-                    RabbitMQConfig.ASSIGNMENT_ROUTING_KEY,
+                    AssignmentRabbitConfig.ASSIGNMENT_EXCHANGE,
+                    AssignmentRabbitConfig.ASSIGNMENT_ROUTING_KEY,
                     job
             );
         }
