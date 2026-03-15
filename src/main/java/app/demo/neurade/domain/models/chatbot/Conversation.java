@@ -33,7 +33,7 @@ public class Conversation {
             name = "instance_id",
             referencedColumnName = "id",
             nullable = false,
-            foreignKey = @ForeignKey(name = "fk_conversation_ai_instance")
+            foreignKey = @ForeignKey(name = "fk_conversation_ai_instance", foreignKeyDefinition = "FOREIGN KEY (instance_id) REFERENCES ai_packages_instances(id) ON UPDATE CASCADE")
     )
     private AIPackageInstance instance;
 

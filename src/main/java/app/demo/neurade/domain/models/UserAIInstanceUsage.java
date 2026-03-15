@@ -33,7 +33,7 @@ public class UserAIInstanceUsage {
     @JoinColumn(
             name = "instance_id",
             nullable = false,
-            foreignKey = @ForeignKey(name = "fk_user_ai_instance_usage_ai_package_instance")
+            foreignKey = @ForeignKey(name = "fk_user_ai_instance_usage_ai_package_instance", foreignKeyDefinition = "FOREIGN KEY (instance_id) REFERENCES ai_packages_instances(id) ON DELETE CASCADE")
     )
     private AIPackageInstance instance;
 

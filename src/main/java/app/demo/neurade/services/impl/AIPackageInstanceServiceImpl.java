@@ -3,7 +3,9 @@ package app.demo.neurade.services.impl;
 import app.demo.neurade.domain.dtos.AIPackageInstanceDTO;
 import app.demo.neurade.domain.dtos.requests.TokenUsageLimit;
 import app.demo.neurade.domain.dtos.requests.UserInstanceUsageCreationRequest;
+import app.demo.neurade.domain.dtos.requests.ModifyAIPackageInstanceRequest;
 import app.demo.neurade.domain.mappers.Mapper;
+import app.demo.neurade.domain.mappers.AIPackageInstanceMapper;
 import app.demo.neurade.domain.models.AIPackage;
 import app.demo.neurade.domain.models.AIPackageInstance;
 import app.demo.neurade.domain.models.User;
@@ -36,6 +38,7 @@ public class AIPackageInstanceServiceImpl implements AIPackageInstanceService {
     private final UserRepository userRepository;
     private final UserInstanceUsageRepository userInstanceUsageRepository;
     private final ParticipantRepository participantRepository;
+    private final AIPackageInstanceMapper aiPackageInstanceMapper;
 
     @Override
     @Transactional
@@ -141,5 +144,26 @@ public class AIPackageInstanceServiceImpl implements AIPackageInstanceService {
                 .build());
 
         log.info("Usage record created for free AI instance for user: {}", user.getEmail());
+    }
+
+    @Override
+    @Transactional
+    public AIPackageInstanceDTO modifyInstance(UUID instanceId, ModifyAIPackageInstanceRequest req) {
+        AIPackageInstance instance = instanceRepository.findById(instanceId)
+                .orElseThrow(() -> new RuntimeException("AI Package Instance not found with id: " + instanceId));
+
+        aiPackageInstanceMapper.patchInstance(req, instance);
+        instanceRepository.save(instance);
+        return mapper.toDto(instance);
+    }
+
+    @Override
+    @Transactional
+    public AIPackageInstanceDTO setInactive(UUID instanceId) {
+        var instance = instanceRepository.findById(instanceId)
+            .orElseThrow(() -> new RuntimeException("AI Package Instance not found with id: " + instanceId));
+        instance.setStatus(AIPackageInstance.Status.INACTIVE);
+        instanceRepository.save(instance);
+        return mapper.toDto(instance);
     }
 }

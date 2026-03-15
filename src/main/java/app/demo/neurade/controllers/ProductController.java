@@ -4,9 +4,12 @@ import app.demo.neurade.domain.dtos.requests.AIPackageCreationRequest;
 import app.demo.neurade.domain.dtos.requests.AIPackagePurchaseRequest;
 import app.demo.neurade.domain.dtos.requests.GetInstanceForUserRequest;
 import app.demo.neurade.domain.dtos.requests.ValidateKeyRequest;
+import app.demo.neurade.domain.dtos.requests.ModifyAIPackageInstanceRequest;
+import app.demo.neurade.domain.dtos.requests.AIPackageModificationRequest;
 import app.demo.neurade.domain.mappers.Mapper;
 import app.demo.neurade.domain.models.AIPackage;
 import app.demo.neurade.security.CustomUserDetails;
+import app.demo.neurade.security.RequireVerified;
 import app.demo.neurade.services.AIPackageInstanceService;
 import app.demo.neurade.services.AIPackageService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -18,6 +21,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/product")
@@ -49,7 +53,8 @@ public class ProductController {
     }
 
     @PostMapping("/ai-package/purchase")
-    @PreAuthorize("hasAnyRole('ADMIN', 'ORGANIZATION', 'TEACHER')" )
+//    @PreAuthorize("hasAnyRole('ADMIN', 'ORGANIZATION', 'TEACHER')" )
+    @RequireVerified
     public ResponseEntity<?> purchaseAIPackage(@RequestBody AIPackagePurchaseRequest req) {
         CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ResponseEntity.ok(
@@ -96,6 +101,60 @@ public class ProductController {
         CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return ResponseEntity.ok(
                 aiPackageInstanceService.getInstanceForUser(userDetails.getUser().getId(), req.getClassId())
+        );
+    }
+
+    @PatchMapping("/ai-package/{packageId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> updateAIPackage(
+            @PathVariable Integer packageId,
+            @Valid @RequestBody AIPackageModificationRequest req
+    ) {
+        aiPackageService.modifyPackage(packageId, req);
+        return ResponseEntity.ok(
+                Map.of(
+                        "message", "AI Package updated successfully"
+                )
+        );
+    }
+
+    @PatchMapping("/ai-package/instance/{instanceId}")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ORGANIZATION', 'ADMIN')")
+    public ResponseEntity<?> updateAIPackageInstance(
+            @PathVariable String instanceId,
+            @RequestBody ModifyAIPackageInstanceRequest req
+    ) {
+        return ResponseEntity.ok(
+            Map.of(
+                "message", "AI Package Instance updated successfully",
+                "data", aiPackageInstanceService.modifyInstance(
+                    UUID.fromString(instanceId), req
+                )
+            )
+        );
+    }
+
+    @DeleteMapping("/ai-package/{packageId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteAIPackage(@PathVariable Integer packageId) {
+        var updated = aiPackageService.setInactive(packageId);
+        return ResponseEntity.ok(
+            Map.of(
+                "message", "AI Package deleted successfully",
+                "data", mapper.toDto(updated)
+            )
+        );
+    }
+
+    @DeleteMapping("/ai-package/instance/{instanceId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteAIPackageInstance(@PathVariable String instanceId) {
+        var updated = aiPackageInstanceService.setInactive(UUID.fromString(instanceId));
+        return ResponseEntity.ok(
+            Map.of(
+                "message", "AI Package Instance deleted successfully",
+                "data", updated
+            )
         );
     }
 }

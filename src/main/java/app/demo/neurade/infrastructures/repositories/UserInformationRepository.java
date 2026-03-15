@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UserInformationRepository extends JpaRepository<UserInformation, Long> {
-    Optional<UserInformation> findByUserEmail(String email);
     Optional<UserInformation> findByUser_Id(Long id);
 
     @Query("""

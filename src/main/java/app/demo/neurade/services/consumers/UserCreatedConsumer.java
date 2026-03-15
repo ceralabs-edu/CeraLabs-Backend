@@ -8,19 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
-/**
- * Consumer that listens to user created events from RabbitMQ.
- * This is where you implement post-user-creation operations like:
- * - Creating a free personal AI instance
- * - Sending welcome emails
- * - Creating default user settings
- * - Adding to analytics/CRM
- * Benefits of using RabbitMQ over simple events:
- * - Messages persist even if the app crashes
- * - Can be processed by separate microservices
- * - Built-in retry logic with DLQ (Dead Letter Queue)
- * - Better scalability and reliability
- */
 @Component
 @RequiredArgsConstructor
 @Slf4j
