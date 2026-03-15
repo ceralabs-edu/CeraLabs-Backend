@@ -6,7 +6,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -25,9 +24,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final UserDetailsService userDetailsService;
     private final JwtService jwtService;
     private final UserService userService;
-    private final CookieService cookieService;
-    @Value("${application.frontend.url}")
-    private String frontendUrl;
 
     @Override
     @Transactional
@@ -42,16 +38,21 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         if (email == null || email.isBlank()) {
             log.error("Email not found in OAuth2 attributes");
-            response.sendRedirect(frontendUrl + "/?error=email_not_found");
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\":\"email_not_found\"}");
             return;
         }
 
         findOrCreateUser(email, oauth2User);
 
         List<String> tokens = generateTokens(email);
-        cookieService.setTokenCookies(response, tokens.get(0), tokens.get(1));
+        // cookieService.setTokenCookies(response, tokens.get(0), tokens.get(1)); // Không cần set cookie nữa nếu trả về body
 
-        response.sendRedirect(frontendUrl + "/");
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.setContentType("application/json");
+        String json = String.format("{\"accessToken\":\"%s\",\"refreshToken\":\"%s\"}", tokens.get(0), tokens.get(1));
+        response.getWriter().write(json);
     }
 
     private void findOrCreateUser(String email, OAuth2User oauth2User) {
