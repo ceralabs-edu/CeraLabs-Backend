@@ -33,7 +33,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -55,14 +54,13 @@ public class UserServiceImpl implements UserService {
     private final UserPersistenceService userPersistenceService;
 
     @Override
+    @Transactional
     public boolean updateUserInfo(User user, PatchUserRequest req) {
         UserInformation info = infoRepository.findByUser_Id(user.getId())
                 .orElseThrow(() -> new EntityNotFoundException("User information not found"));
 
         userInformationMapper.patchUserInfo(req, info);
-
-        user.setUpdatedAt(LocalDateTime.now());
-        userRepository.save(user); // DM TRIGGER
+        infoRepository.save(info);
 
         return true;
     }
