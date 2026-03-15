@@ -2,7 +2,6 @@ package app.demo.neurade.controllers;
 
 import app.demo.neurade.domain.dtos.requests.ChangeUserPasswordRequest;
 import app.demo.neurade.domain.dtos.requests.ChangeUserRoleRequest;
-import app.demo.neurade.domain.mappers.JwtAccessTokenMapper;
 import app.demo.neurade.services.AdminService;
 import app.demo.neurade.services.JwtAccessTokenService;
 import app.demo.neurade.services.UserService;
@@ -25,7 +24,6 @@ public class AdminController {
     private final AdminService adminService;
     private final UserService userService;
     private final JwtAccessTokenService jwtAccessTokenService;
-    private final JwtAccessTokenMapper jwtAccessTokenMapper;
 
     @Operation(summary = "Update user role", description = "Change the role of a user")
     @PatchMapping("/users/{email}/role")
