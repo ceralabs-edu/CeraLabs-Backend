@@ -51,10 +51,22 @@ public class AIPackage {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    public enum Status {
+        ACTIVE,
+        INACTIVE
+    }
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private Status status;
+
     @PrePersist
     public void onCreate() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
+        if (this.status == null) {
+            this.status = Status.ACTIVE;
+        }
     }
 
     @PreUpdate

@@ -2,11 +2,13 @@ package app.demo.neurade.services.impl;
 
 import app.demo.neurade.domain.dtos.AIPackageInstanceDTO;
 import app.demo.neurade.domain.dtos.ValidateKeyDTO;
+import app.demo.neurade.domain.dtos.requests.AIPackageModificationRequest;
 import app.demo.neurade.infrastructures.chatbot_llm.requests.VerifyKeyRequest;
 import app.demo.neurade.infrastructures.chatbot_llm.responses.VerifyKeyResponse;
 import app.demo.neurade.domain.dtos.requests.AIPackageCreationRequest;
 import app.demo.neurade.domain.dtos.requests.UserInstanceUsageCreationRequest;
 import app.demo.neurade.domain.mappers.Mapper;
+import app.demo.neurade.domain.mappers.AIPackageMapper;
 import app.demo.neurade.domain.models.*;
 import app.demo.neurade.infrastructures.repositories.AIPackageInstanceRepository;
 import app.demo.neurade.infrastructures.repositories.AIPackageRepository;
@@ -37,6 +39,7 @@ public class AIPackageServiceImpl implements AIPackageService {
     private final RestTemplate restTemplate;
     private final Mapper mapper;
     private final AIPackageInstanceService aIPackageInstanceService;
+    private final AIPackageMapper aiPackageMapper;
 
     @Value("${llm.validate.endpoint}")
     private String verificationEndpoint;
@@ -187,5 +190,25 @@ public class AIPackageServiceImpl implements AIPackageService {
     @Override
     public List<AIPackage> getAllPackages() {
         return aiPackageRepository.findAll();
+    }
+
+    @Override
+    public void modifyPackage(Integer packageId, AIPackageModificationRequest req) {
+        AIPackage aiPackage = aiPackageRepository.findById(packageId)
+                .orElseThrow(() -> new RuntimeException("AI Package not found with id: " + packageId));
+
+        aiPackageMapper.updateAIPackageFromDto(req, aiPackage);
+        aiPackageRepository.save(aiPackage);
+    }
+
+    @Override
+    @Transactional
+    public AIPackage setInactive(Integer packageId) {
+        AIPackage aiPackage = aiPackageRepository.findById(packageId)
+                .orElseThrow(() -> new RuntimeException("AI Package not found with id: " + packageId));
+        aiPackage.setStatus(AIPackage.Status.INACTIVE);
+        aiPackageRepository.save(aiPackage);
+        log.info("AI Package with ID: {} has been set to inactive", packageId);
+        return aiPackage;
     }
 }

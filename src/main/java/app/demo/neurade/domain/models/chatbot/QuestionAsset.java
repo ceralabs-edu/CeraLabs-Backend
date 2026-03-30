@@ -25,7 +25,7 @@ public class QuestionAsset {
     @JoinColumn(
             name = "qa_entry_id",
             nullable = false,
-            foreignKey = @ForeignKey(name = "fk_question_asset_qa_entry")
+            foreignKey = @ForeignKey(name = "fk_question_asset_qa_entry", foreignKeyDefinition = "FOREIGN KEY (qa_entry_id) REFERENCES qa_entries(id) ON DELETE CASCADE ON UPDATE CASCADE")
     )
     private QAEntry qaEntry;
 

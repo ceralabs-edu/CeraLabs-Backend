@@ -25,6 +25,11 @@ public class QAEntry {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+        name = "conversation_id",
+        nullable = false,
+        foreignKey = @ForeignKey(name = "fk_qa_entries_on_conversation", foreignKeyDefinition = "FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE")
+    )
     private Conversation conversation;
 
     @Column(columnDefinition = "TEXT", name = "question_text")
@@ -49,4 +54,3 @@ public class QAEntry {
         this.createdAt = LocalDateTime.now();
     }
 }
-

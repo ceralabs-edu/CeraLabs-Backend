@@ -54,6 +54,13 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(UserNotVerifiedException.class)
+    public ResponseEntity<?> handleUserNotVerifiedException(UserNotVerifiedException ex) {
+        return buildErrorResponse(
+                HttpStatus.FORBIDDEN,
+                ex.getMessage()
+        );
+    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleException(Exception ex) {
@@ -77,4 +84,3 @@ public class GlobalExceptionHandler {
         );
     }
 }
-
