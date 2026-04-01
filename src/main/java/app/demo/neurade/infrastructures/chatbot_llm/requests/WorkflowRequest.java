@@ -12,14 +12,16 @@ import java.util.List;
 @AllArgsConstructor
 public class WorkflowRequest {
 
+    @Deprecated
     @JsonProperty("api_key")
     private String apiKey;
 
+    @Deprecated
     private String model;
 
     private List<Query> queries;
 
-    @JsonProperty("image_urls")
+    @JsonProperty("file_paths")
     private List<String> files;
 
     @Getter

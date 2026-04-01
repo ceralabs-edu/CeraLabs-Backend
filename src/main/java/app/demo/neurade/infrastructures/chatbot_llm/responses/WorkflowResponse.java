@@ -1,6 +1,7 @@
 package app.demo.neurade.infrastructures.chatbot_llm.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.*;
 
 import java.util.List;
@@ -11,6 +12,8 @@ import java.util.List;
 @AllArgsConstructor
 public class WorkflowResponse {
 
+    private static final ObjectMapper mapper = new ObjectMapper();
+
 //    private List<String> images;
 //    private List<List<String>> queries;
     private Guardian guardian;
@@ -18,30 +21,51 @@ public class WorkflowResponse {
     @JsonProperty("assistant")
     private Assistant assistant;
 
-    @JsonProperty("assistant_raw")
-    private AssistantRaw assistantRaw;
-
-    @JsonProperty("guardian_raw")
-    private GuardianRaw guardianRaw;
-
     @Getter
-    @Setter
     public static class Guardian {
-        @JsonProperty("problem_type")
-        private List<String> problemType;
-        private String difficulty;
-        private String route;
-        private String reply;
+        @Getter
+        public static class GuardianResponse {
+            @JsonProperty("problem_type")
+            private List<String> problemType;
+            private String difficulty;
+            private String route;
+
+            @Override
+            public String toString() {
+                try {
+                    return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(this);
+                } catch (Exception e) {
+                    return "{\"error\":\"Could not serialize Assistant to JSON\"}";
+                }
+            }
+        }
+
+        @JsonProperty("response")
+        private GuardianResponse response;
     }
 
     @Getter
-    @Setter
     public static class Assistant {
-        private String approach;
-        private List<SolutionStep> solution;
+        @Getter
+        public static class AssistantResponse {
+            private String approach;
+            private List<SolutionStep> solution;
 
-        @JsonProperty("final_answer")
-        private String finalAnswer;
+            @JsonProperty("final_answer")
+            private String finalAnswer;
+
+            @Override
+            public String toString() {
+                try {
+                    return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(this);
+                } catch (Exception e) {
+                    return "{\"error\":\"Could not serialize Assistant to JSON\"}";
+                }
+            }
+        }
+
+        @JsonProperty("response")
+        private AssistantResponse response;
     }
 
     @Getter
@@ -50,24 +74,6 @@ public class WorkflowResponse {
         private String title;
         private String solving;
         private String explanation;
-    }
-
-    @Getter
-    @Setter
-    public static class AssistantRaw {
-        private String content;
-
-        @JsonProperty("usage_metadata")
-        private UsageMetadata usageMetadata;
-    }
-
-    @Getter
-    @Setter
-    public static class GuardianRaw {
-        private String content;
-
-        @JsonProperty("usage_metadata")
-        private UsageMetadata usageMetadata;
     }
 
     @Getter
