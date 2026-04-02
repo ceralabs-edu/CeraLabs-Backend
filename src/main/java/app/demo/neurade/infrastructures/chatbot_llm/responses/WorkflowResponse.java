@@ -1,5 +1,7 @@
 package app.demo.neurade.infrastructures.chatbot_llm.responses;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.*;
@@ -14,8 +16,6 @@ public class WorkflowResponse {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
-//    private List<String> images;
-//    private List<List<String>> queries;
     private Guardian guardian;
 
     @JsonProperty("assistant")
@@ -42,6 +42,14 @@ public class WorkflowResponse {
 
         @JsonProperty("response")
         private GuardianResponse response;
+
+        @JsonProperty("response_raw")
+        @JsonIgnore
+        private List<List<Object>> responseRaw;
+
+        public UsageMetadata usageMetadata() {
+            return extractUsageMetadata(responseRaw);
+        }
     }
 
     @Getter
@@ -66,10 +74,17 @@ public class WorkflowResponse {
 
         @JsonProperty("response")
         private AssistantResponse response;
+
+        @JsonProperty("response_raw")
+        @JsonIgnore
+        private List<List<Object>> responseRaw;
+
+        public UsageMetadata usageMetadata() {
+            return extractUsageMetadata(responseRaw);
+        }
     }
 
     @Getter
-    @Setter
     public static class SolutionStep {
         private String title;
         private String solving;
@@ -77,7 +92,7 @@ public class WorkflowResponse {
     }
 
     @Getter
-    @Setter
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class UsageMetadata {
         @JsonProperty("input_tokens")
         private long inputTokens;
@@ -87,5 +102,22 @@ public class WorkflowResponse {
 
         @JsonProperty("total_tokens")
         private long totalTokens;
+    }
+
+    private static UsageMetadata extractUsageMetadata(List<List<Object>> responseRaw) {
+        if (responseRaw == null) return null;
+
+        return responseRaw.stream()
+                .filter(entry -> entry.size() == 2 && "usage_metadata".equals(entry.getFirst()))
+                .findFirst()
+                .map(entry -> {
+                    try {
+                        // entry.get(1) will be a LinkedHashMap when deserialized as Object
+                        return mapper.convertValue(entry.get(1), UsageMetadata.class);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .orElse(null);
     }
 }

@@ -51,7 +51,7 @@ public class ChatbotClient {
 
         try {
             String uri = type == Type.CHAT ? "/{workflowId}/normal" : "/{workflowId}/scoring";
-            log.info("Calling LLM workflow at URI: {} with workflow ID: {}", uri, workflowId);
+            log.info("Calling LLM workflow at URI: \"{}\" with workflow ID: {}", uri, workflowId);
             WorkflowResponse response = webClient.post()
                     .uri(uri, workflowId)
                     .contentType(MediaType.APPLICATION_JSON)
