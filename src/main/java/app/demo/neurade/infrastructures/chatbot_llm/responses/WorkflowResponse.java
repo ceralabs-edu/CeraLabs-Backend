@@ -2,6 +2,7 @@ package app.demo.neurade.infrastructures.chatbot_llm.responses;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.*;
@@ -13,6 +14,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class WorkflowResponse {
 
     private static final ObjectMapper mapper = new ObjectMapper();
@@ -24,18 +26,31 @@ public class WorkflowResponse {
     @Getter
     public static class Guardian {
         @Getter
+        @JsonInclude(JsonInclude.Include.NON_NULL)
         public static class GuardianResponse {
             @JsonProperty("problem_type")
             private List<String> problemType;
             private String difficulty;
             private String route;
 
+            private String reply;
+
+            @JsonIgnore
+            public boolean isRejected() {
+                return reply != null && !reply.isEmpty();
+            }
+
+            @JsonIgnore
+            public boolean isAccepted() {
+                return !isRejected();
+            }
+
             @Override
             public String toString() {
                 try {
                     return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(this);
                 } catch (Exception e) {
-                    return "{\"error\":\"Could not serialize Assistant to JSON\"}";
+                    return "{\"error\":\"Could not serialize GuardianResponse to JSON\"}";
                 }
             }
         }
@@ -43,8 +58,7 @@ public class WorkflowResponse {
         @JsonProperty("response")
         private GuardianResponse response;
 
-        @JsonProperty("response_raw")
-        @JsonIgnore
+        @JsonProperty(value = "response_raw", access = JsonProperty.Access.WRITE_ONLY)
         private List<List<Object>> responseRaw;
     }
 
@@ -69,7 +83,7 @@ public class WorkflowResponse {
                 try {
                     return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(this);
                 } catch (Exception e) {
-                    return "{\"error\":\"Could not serialize Assistant to JSON\"}";
+                    return "{\"error\":\"Could not serialize AssistantResponse to JSON\"}";
                 }
             }
         }
@@ -77,9 +91,14 @@ public class WorkflowResponse {
         @JsonProperty("response")
         private AssistantResponse response;
 
-        @JsonProperty("response_raw")
-        @JsonIgnore
+        @JsonProperty(value = "response_raw", access = JsonProperty.Access.WRITE_ONLY)
         private List<List<Object>> responseRaw;
+
+        @JsonProperty("think_twice_response")
+        private AssistantResponse thinkTwiceResponse;
+
+        @JsonProperty(value = "think_twice_response_raw", access = JsonProperty.Access.WRITE_ONLY)
+        private List<List<Object>> thinkTwiceResponseRaw;
     }
 
     @Getter
@@ -87,14 +106,15 @@ public class WorkflowResponse {
         @Getter
         public static class JudgeResponse {
             private float score;
-            private String detailed_feedback;
+            @JsonProperty("detailed_feedback")
+            private String detailedFeedback;
 
             @Override
             public String toString() {
                 try {
                     return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(this);
                 } catch (Exception e) {
-                    return "{\"error\":\"Could not serialize Judge to JSON\"}";
+                    return "{\"error\":\"Could not serialize JudgeResponse to JSON\"}";
                 }
             }
         }
@@ -102,8 +122,7 @@ public class WorkflowResponse {
         @JsonProperty("response")
         private JudgeResponse response;
 
-        @JsonProperty("response_raw")
-        @JsonIgnore
+        @JsonProperty(value = "response_raw", access = JsonProperty.Access.WRITE_ONLY)
         private List<List<Object>> responseRaw;
     }
 
@@ -124,9 +143,23 @@ public class WorkflowResponse {
         long totalInput = 0, totalOutput = 0, totalTokens = 0;
 
         List<List<List<Object>>> allRaws = new ArrayList<>();
-        if (guardian  != null) allRaws.add(guardian.getResponseRaw());
-        if (assistant != null) allRaws.add(assistant.getResponseRaw());
-        if (judge     != null) allRaws.add(judge.getResponseRaw());
+        if (guardian  != null && guardian.getResponseRaw() != null) {
+            allRaws.add(guardian.getResponseRaw());
+        }
+
+        if (assistant != null) {
+            if (assistant.getResponseRaw() != null) {
+                allRaws.add(assistant.getResponseRaw());
+            }
+            // Cộng gộp thêm metadata từ think twice nếu có
+            if (assistant.getThinkTwiceResponseRaw() != null) {
+                allRaws.add(assistant.getThinkTwiceResponseRaw());
+            }
+        }
+
+        if (judge     != null && judge.getResponseRaw() != null) {
+            allRaws.add(judge.getResponseRaw());
+        }
 
         for (List<List<Object>> raw : allRaws) {
             UsageMetadata usage = extractUsageMetadata(raw);
@@ -152,7 +185,6 @@ public class WorkflowResponse {
                 .findFirst()
                 .map(entry -> {
                     try {
-                        // entry.get(1) will be a LinkedHashMap when deserialized as Object
                         return mapper.convertValue(entry.get(1), UsageMetadata.class);
                     } catch (Exception e) {
                         return null;

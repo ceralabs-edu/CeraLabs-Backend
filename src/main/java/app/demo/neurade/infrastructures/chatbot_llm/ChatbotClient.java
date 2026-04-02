@@ -17,10 +17,6 @@ import java.util.List;
 @Slf4j
 public class ChatbotClient {
 
-    public enum Type {
-        CHAT, SCORING
-    }
-
     private final WebClient webClient;
 
     @Value("${llm.model}")
@@ -42,7 +38,7 @@ public class ChatbotClient {
             List<WorkflowRequest.Query> queries,
             List<String> assetUrls,
             String workflowId,
-            Type type
+            WorkflowType type
     ) {
         WorkflowRequest request = WorkflowRequest.builder()
                 .files(assetUrls)
@@ -50,7 +46,7 @@ public class ChatbotClient {
                 .build();
 
         try {
-            String uri = type == Type.CHAT ? "/{workflowId}/normal" : "/{workflowId}/scoring";
+            String uri = type == WorkflowType.CHAT ? "/{workflowId}/normal" : "/{workflowId}/scoring";
             log.info("Calling LLM workflow at URI: \"{}\" with workflow ID: {}", uri, workflowId);
             WorkflowResponse response = webClient.post()
                     .uri(uri, workflowId)

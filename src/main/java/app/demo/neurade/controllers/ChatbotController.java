@@ -2,6 +2,7 @@ package app.demo.neurade.controllers;
 
 import app.demo.neurade.domain.dtos.requests.ChatRequest;
 import app.demo.neurade.domain.mappers.Mapper;
+import app.demo.neurade.infrastructures.chatbot_llm.ChatEventPublisher;
 import app.demo.neurade.security.CustomUserDetails;
 import app.demo.neurade.security.RequireVerified;
 import app.demo.neurade.services.ChatbotService;
@@ -17,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 import java.util.Map;
@@ -32,6 +34,7 @@ public class ChatbotController {
 
     private final ChatbotService chatbotService;
     private final Mapper mapper;
+    private final ChatEventPublisher chatEventPublisher;
 
     @Operation(
             summary = "Chat with AI chatbot",
@@ -86,7 +89,19 @@ public class ChatbotController {
         );
     }
 
+    @Operation(
+            summary = "Stream chat progress via SSE",
+            description = "Open an SSE connection to receive real-time streaming events for a chat job. " +
+                    "Call this endpoint right after POST /chat with the returned jobId. " +
+                    "Events: progress, stream, stream_end, status, error"
+    )
+    @GetMapping(value = "/chat/stream/{jobId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter streamChat(@PathVariable String jobId) {
+        return chatEventPublisher.register(jobId);
+    }
+
     @GetMapping("/chat/job-status/{jobId}")
+    @Deprecated
     public ResponseEntity<?> getChatJobStatus(
             @PathVariable UUID jobId
     ) {

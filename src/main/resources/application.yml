@@ -68,6 +68,8 @@ llm:
     endpoint: ${LLM_VALIDATE_ENDPOINT}
   qa:
     endpoint: ${LLM_QA_ENDPOINT}
+  ws:
+    endpoint: ${LLM_WS_ENDPOINT}
   assignment-ocr:
     endpoint: ${LLM_ASSIGNMENT_OCR_ENDPOINT}
   timeout: ${LLM_TIMEOUT_SECONDS:180}
