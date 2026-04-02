@@ -12,13 +12,6 @@ import java.util.List;
 @AllArgsConstructor
 public class WorkflowRequest {
 
-    @Deprecated
-    @JsonProperty("api_key")
-    private String apiKey;
-
-    @Deprecated
-    private String model;
-
     private List<Query> queries;
 
     @JsonProperty("file_paths")

@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import java.util.Map;
 import java.util.UUID;
@@ -25,14 +26,19 @@ public class AssignmentController {
 
     @PostMapping("/judge")
     public ResponseEntity<?> judgeAssignment(
-            @RequestParam Map<String, MultipartFile> answers
+            @RequestParam UUID instanceId,
+            MultipartHttpServletRequest request
     ) {
         CustomUserDetails userDetails = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (userDetails == null) {
             throw new UnauthorizedException("Unauthorized");
         }
+
+        Map<String, MultipartFile> answers = request.getFileMap();
+
         Map<String, String> res = assignmentJudgeService.checkAnswers(
                 userDetails.getUser(),
+                instanceId,
                 answers
         );
         return ResponseEntity.ok(

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -17,9 +18,8 @@ public class WorkflowResponse {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     private Guardian guardian;
-
-    @JsonProperty("assistant")
     private Assistant assistant;
+    private Judge judge;
 
     @Getter
     public static class Guardian {
@@ -46,16 +46,18 @@ public class WorkflowResponse {
         @JsonProperty("response_raw")
         @JsonIgnore
         private List<List<Object>> responseRaw;
-
-        public UsageMetadata usageMetadata() {
-            return extractUsageMetadata(responseRaw);
-        }
     }
 
     @Getter
     public static class Assistant {
         @Getter
         public static class AssistantResponse {
+            @Getter
+            public static class SolutionStep {
+                private String title;
+                private String solving;
+                private String explanation;
+            }
             private String approach;
             private List<SolutionStep> solution;
 
@@ -78,17 +80,31 @@ public class WorkflowResponse {
         @JsonProperty("response_raw")
         @JsonIgnore
         private List<List<Object>> responseRaw;
-
-        public UsageMetadata usageMetadata() {
-            return extractUsageMetadata(responseRaw);
-        }
     }
 
     @Getter
-    public static class SolutionStep {
-        private String title;
-        private String solving;
-        private String explanation;
+    public static class Judge {
+        @Getter
+        public static class JudgeResponse {
+            private float score;
+            private String detailed_feedback;
+
+            @Override
+            public String toString() {
+                try {
+                    return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(this);
+                } catch (Exception e) {
+                    return "{\"error\":\"Could not serialize Judge to JSON\"}";
+                }
+            }
+        }
+
+        @JsonProperty("response")
+        private JudgeResponse response;
+
+        @JsonProperty("response_raw")
+        @JsonIgnore
+        private List<List<Object>> responseRaw;
     }
 
     @Getter
@@ -102,6 +118,30 @@ public class WorkflowResponse {
 
         @JsonProperty("total_tokens")
         private long totalTokens;
+    }
+
+    public UsageMetadata totalUsageMetadata() {
+        long totalInput = 0, totalOutput = 0, totalTokens = 0;
+
+        List<List<List<Object>>> allRaws = new ArrayList<>();
+        if (guardian  != null) allRaws.add(guardian.getResponseRaw());
+        if (assistant != null) allRaws.add(assistant.getResponseRaw());
+        if (judge     != null) allRaws.add(judge.getResponseRaw());
+
+        for (List<List<Object>> raw : allRaws) {
+            UsageMetadata usage = extractUsageMetadata(raw);
+            if (usage != null) {
+                totalInput  += usage.getInputTokens();
+                totalOutput += usage.getOutputTokens();
+                totalTokens += usage.getTotalTokens();
+            }
+        }
+
+        UsageMetadata total = new UsageMetadata();
+        total.inputTokens  = totalInput;
+        total.outputTokens = totalOutput;
+        total.totalTokens  = totalTokens;
+        return total;
     }
 
     private static UsageMetadata extractUsageMetadata(List<List<Object>> responseRaw) {
@@ -119,5 +159,14 @@ public class WorkflowResponse {
                     }
                 })
                 .orElse(null);
+    }
+
+    @Override
+    public String toString() {
+        try {
+            return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(this);
+        } catch (Exception e) {
+            return "{\"error\":\"Could not serialize WorkflowResponse to JSON\", \"message\":\"" + e.getMessage() + "\"}";
+        }
     }
 }
